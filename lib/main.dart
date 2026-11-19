@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'auth_screen.dart';
 import 'jarvis_screen.dart';
+import 'notes_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -84,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final pages = [
       _dashboard(),
       JarvisScreen(nickname: widget.nickname),
-      const _PlaceholderPage(icon: Icons.note_alt_outlined, title: 'Быстрые заметки', subtitle: 'Здесь будут ваши заметки.'),
+      const NotesScreen(),
       const _PlaceholderPage(icon: Icons.access_time, title: 'Цифровой Блат', subtitle: 'Персональный цифровой циферблат.'),
       const _PlaceholderPage(icon: Icons.person_outline, title: 'Профиль', subtitle: 'Настройки профиля и аватара.'),
     ];
