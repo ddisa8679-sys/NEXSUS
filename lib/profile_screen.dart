@@ -75,6 +75,7 @@ class ProfileScreen extends StatelessWidget {
             _choice(context, 'midnight', 'Тёмно-фиолетовый', settings.background, (v) => settings.setBackground(v)),
             _choice(context, 'black', 'Чёрный OLED', settings.background, (v) => settings.setBackground(v)),
             _choice(context, 'navy', 'Тёмно-синий', settings.background, (v) => settings.setBackground(v)),
+            _choice(context, 'forest', 'Тёмно-зелёный', settings.background, (v) => settings.setBackground(v)),
             const Divider(height: 28, color: Colors.white12),
             const Text('Шрифт', style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
