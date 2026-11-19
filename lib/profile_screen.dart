@@ -37,6 +37,24 @@ class ProfileScreen extends StatelessWidget {
             ]),
           ),
           const SizedBox(height: 22),
+          const Text('ЯЗЫК И ИНТЕРФЕЙС', style: TextStyle(fontSize: 11, letterSpacing: 1.6, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 10),
+          _section(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('Язык приложения', style: TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: settings.language,
+              decoration: const InputDecoration(border: OutlineInputBorder(), prefixIcon: Icon(Icons.language)),
+              items: const [
+                DropdownMenuItem(value: 'ru', child: Text('Русский')),
+                DropdownMenuItem(value: 'en', child: Text('English')),
+              ],
+              onChanged: (value) { if (value != null) settings.setLanguage(value); },
+            ),
+            const SizedBox(height: 6),
+            const Text('Язык системных элементов и календарных диалогов изменится сразу. Перевод остальных экранов будет расширяться в следующих обновлениях.', style: TextStyle(color: Colors.white54, fontSize: 11)),
+          ])),
+          const SizedBox(height: 22),
           const Text('ВНЕШНИЙ ВИД', style: TextStyle(fontSize: 11, letterSpacing: 1.6, fontWeight: FontWeight.bold)),
           const SizedBox(height: 10),
           _section(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -48,6 +66,8 @@ class ProfileScreen extends StatelessWidget {
               _colorChoice('emerald', const Color(0xFF24B889), settings),
               _colorChoice('rose', const Color(0xFFE45D9A), settings),
               _colorChoice('amber', const Color(0xFFFFB84D), settings),
+              _colorChoice('cyan', const Color(0xFF22C7D6), settings),
+              _colorChoice('crimson', const Color(0xFFE34D65), settings),
             ]),
             const Divider(height: 28, color: Colors.white12),
             const Text('Фон приложения', style: TextStyle(fontWeight: FontWeight.w600)),
