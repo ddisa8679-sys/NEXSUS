@@ -251,7 +251,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 IconButton(onPressed: () => setState(() => _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1)), icon: const Icon(Icons.chevron_right)),
               ]),
               const SizedBox(height: 8),
-              const Row(children: [
+              Row(children: [
                 'ПН','ВТ','СР','ЧТ','ПТ','СБ','ВС'
               ].map((d) => Expanded(child: Center(child: Text(d, style: TextStyle(fontSize: 10, color: Colors.white54, fontWeight: FontWeight.bold))))).toList(),
               ),
