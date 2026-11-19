@@ -1,11 +1,23 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'auth_screen.dart';
 
-void main() => runApp(const NexsusApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  var firebaseReady = false;
+  try {
+    await Firebase.initializeApp();
+    firebaseReady = true;
+  } catch (_) {
+    // Keep the UI usable and show setup guidance when auth is attempted.
+  }
+  runApp(NexsusApp(firebaseReady: firebaseReady));
+}
 
 class NexsusApp extends StatelessWidget {
-  const NexsusApp({super.key});
+  const NexsusApp({super.key, required this.firebaseReady});
+  final bool firebaseReady;
   @override
   Widget build(BuildContext context) => MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -16,7 +28,7 @@ class NexsusApp extends StatelessWidget {
       colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF8050FF), brightness: Brightness.dark),
       useMaterial3: true,
     ),
-    home: const AuthScreen(),
+    home: AuthScreen(firebaseReady: firebaseReady),
   );
 }
 
