@@ -6,11 +6,13 @@ class AppSettings extends ChangeNotifier {
   static const _fontKey = 'nexsus_font_v1';
   static const _scaleKey = 'nexsus_scale_v1';
   static const _backgroundKey = 'nexsus_background_v1';
+  static const _languageKey = 'nexsus_language_v1';
 
   String theme = 'violet';
   String font = 'system';
   String background = 'midnight';
   double fontScale = 1.0;
+  String language = 'ru';
 
   Color get accent => const {
     'violet': Color(0xFF8050FF),
@@ -37,6 +39,7 @@ class AppSettings extends ChangeNotifier {
     font = prefs.getString(_fontKey) ?? font;
     background = prefs.getString(_backgroundKey) ?? background;
     fontScale = prefs.getDouble(_scaleKey) ?? fontScale;
+    language = prefs.getString(_languageKey) ?? language;
     notifyListeners();
   }
 
@@ -61,6 +64,13 @@ class AppSettings extends ChangeNotifier {
     await prefs.setString(_backgroundKey, value);
   }
 
+  Future<void> setLanguage(String value) async {
+    language = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_languageKey, value);
+  }
+
   Future<void> setFontScale(double value) async {
     fontScale = value;
     notifyListeners();
@@ -68,3 +78,4 @@ class AppSettings extends ChangeNotifier {
     await prefs.setDouble(_scaleKey, value);
   }
 }
+
