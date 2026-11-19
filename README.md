@@ -1,25 +1,29 @@
-# NEXSUS (Android first)
+# NEXSUS — Android first
 
-Private-use mobile assistant. The first milestone targets Android only.
+A personal-use assistant app. The current milestone targets Android only; iOS is intentionally postponed.
 
-## Stack
-- Flutter / Dart
-- Material 3 with a custom dark neon interface
+## Current starter
+- Flutter / Dart app entry point in `lib/main.dart`
+- Dark neon-purple dashboard
+- Greeting that changes with local time
+- Live clock with seconds and current date
+- Navigation placeholders for Jarvis, Notes, Digital Blat, and Profile
 
-## First milestone
-- Responsive home dashboard
-- Time-aware greeting and live clock
-- Navigation placeholders for Jarvis, Notes, Digital Blat, Profile, and Settings
-
-## Build
-Install Flutter and Android Studio, then run:
+## Complete Android project setup
+This repository currently contains the Flutter app source and package manifest. To generate the native Android Gradle wrapper and platform files on a computer with Flutter installed, run from the repository root:
 
 ```bash
+flutter create . --platforms=android
 flutter pub get
 flutter run
+```
+
+To build a release APK:
+
+```bash
 flutter build apk --release
 ```
 
-The release APK is generated at `build/app/outputs/flutter-apk/app-release.apk`.
+The APK will be created at `build/app/outputs/flutter-apk/app-release.apk`.
 
-iOS is intentionally out of scope for this milestone.
+Authentication, cloud sync, voice commands, and persistent notes are planned for later milestones and are not implemented in this starter yet.
