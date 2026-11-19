@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'auth_service.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -9,28 +11,61 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _login = TextEditingController();
   final _nickname = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _register = false;
   bool _obscure = true;
+  bool _busy = false;
+  final _auth = AuthService();
 
   @override
   void dispose() {
-    _login.dispose();
     _nickname.dispose();
     _email.dispose();
     _password.dispose();
     super.dispose();
   }
 
-  void _submit() {
-    if (!_formKey.currentState!.validate()) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Интерфейс готов. Для настоящего входа нужно подключить сервер авторизации.')),
-    );
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate() || _busy) return;
+    setState(() => _busy = true);
+    try {
+      if (_register) {
+        await _auth.register(
+          email: _email.text,
+          password: _password.text,
+          nickname: _nickname.text,
+        );
+        _message('Аккаунт создан. Проверь почту — отправлена ссылка подтверждения.');
+      } else {
+        await _auth.signIn(email: _email.text, password: _password.text);
+        _message('Вход выполнен.');
+      }
+    } on FirebaseAuthException catch (e) {
+      _message(_authError(e.code));
+    } catch (_) {
+      _message('Firebase ещё не настроен. Добавь конфигурацию Android и повтори попытку.');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
+
+  void _message(String value) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(value)));
+  }
+
+  String _authError(String code) => switch (code) {
+    'invalid-email' => 'Некорректный адрес почты.',
+    'user-disabled' => 'Этот аккаунт отключён.',
+    'user-not-found' || 'wrong-password' || 'invalid-credential' => 'Неверная почта или пароль.',
+    'email-already-in-use' => 'Аккаунт с такой почтой уже существует.',
+    'weak-password' => 'Пароль слишком простой.',
+    'too-many-requests' => 'Слишком много попыток. Попробуй позже.',
+    'network-request-failed' => 'Нет подключения к интернету.',
+    _ => 'Не удалось выполнить запрос ($code).',
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -73,14 +108,12 @@ class _AuthScreenState extends State<AuthScreen> {
                         Text(_register ? 'Заполни данные для нового профиля' : 'Войди в своё пространство NEXSUS',
                           style: const TextStyle(color: Colors.white60)),
                         const SizedBox(height: 24),
-                        _field(_login, 'Логин', Icons.person_outline),
+                        _field(_email, 'Электронная почта', Icons.mail_outline,
+                          keyboard: TextInputType.emailAddress,
+                          validator: (v) => (v == null || !v.contains('@')) ? 'Укажи корректную почту' : null),
                         if (_register) ...[
                           const SizedBox(height: 14),
                           _field(_nickname, 'Никнейм', Icons.badge_outlined),
-                          const SizedBox(height: 14),
-                          _field(_email, 'Электронная почта', Icons.mail_outline,
-                            keyboard: TextInputType.emailAddress,
-                            validator: (v) => (v == null || !v.contains('@')) ? 'Укажи корректную почту' : null),
                         ],
                         const SizedBox(height: 14),
                         TextFormField(
@@ -103,13 +136,13 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                         const SizedBox(height: 12),
                         FilledButton(
-                          onPressed: _submit,
+                          onPressed: _busy ? null : _submit,
                           style: FilledButton.styleFrom(
                             backgroundColor: const Color(0xFF7549E8),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                           ),
-                          child: Text(_register ? 'ЗАРЕГИСТРИРОВАТЬСЯ' : 'ВОЙТИ',
+                          child: _busy ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Text(_register ? 'ЗАРЕГИСТРИРОВАТЬСЯ' : 'ВОЙТИ',
                             style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
                         ),
                         const SizedBox(height: 12),
@@ -157,8 +190,25 @@ class _AuthScreenState extends State<AuthScreen> {
   void _forgot() {
     showDialog<void>(context: context, builder: (context) => AlertDialog(
       title: const Text('Восстановление пароля'),
-      content: const Text('Восстановление по коду на почту подключим вместе с серверной авторизацией.'),
-      actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Понятно'))],
+      content: const Text('На указанный адрес будет отправлена ссылка для сброса пароля.'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена')),
+        FilledButton(onPressed: () async {
+          Navigator.pop(context);
+          if (!_email.text.contains('@')) {
+            _message('Сначала введи корректный адрес почты.');
+            return;
+          }
+          try {
+            await _auth.sendPasswordReset(_email.text);
+            _message('Ссылка для сброса пароля отправлена на почту.');
+          } on FirebaseAuthException catch (e) {
+            _message(_authError(e.code));
+          } catch (_) {
+            _message('Firebase ещё не настроен. Проверь конфигурацию Android.');
+          }
+        }, child: const Text('Отправить')),
+      ],
     ));
   }
 }
