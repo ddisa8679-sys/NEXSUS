@@ -28,12 +28,20 @@ class NexsusApp extends StatelessWidget {
       colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF8050FF), brightness: Brightness.dark),
       useMaterial3: true,
     ),
-    home: AuthScreen(firebaseReady: firebaseReady),
+    home: AuthScreen(
+      firebaseReady: firebaseReady,
+      onAuthenticated: (context, nickname) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => HomeScreen(nickname: nickname)),
+        );
+      },
+    ),
   );
 }
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, required this.nickname});
+  final String nickname;
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -111,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ]),
       const SizedBox(height: 28),
       _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('$_greeting, Родмир!', style: const TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
+        Text('$_greeting, ${widget.nickname}!', style: const TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
         const SizedBox(height: 7),
         Text('Рады снова тебя видеть.', style: TextStyle(color: Colors.white.withValues(alpha: .65))),
         const SizedBox(height: 22),
@@ -124,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Container(width: 62, height: 62, decoration: const BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(colors: [Color(0xFF8C4DFF), Color(0xFF236BFF)])), child: const Icon(Icons.person, size: 38)),
         const SizedBox(width: 14),
         const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Родмир', style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+          Text(widget.nickname, style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
           SizedBox(height: 4),
           Text('Пользователь NEXSUS', style: TextStyle(color: Colors.white60, fontSize: 12)),
         ])),
