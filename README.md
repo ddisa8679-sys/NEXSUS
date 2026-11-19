@@ -1,29 +1,58 @@
 # NEXSUS — Android first
 
-A personal-use assistant app. The current milestone targets Android only; iOS is intentionally postponed.
+Personal-use Android assistant. iOS is postponed.
 
-## Current starter
-- Flutter / Dart app entry point in `lib/main.dart`
-- Dark neon-purple dashboard
-- Greeting that changes with local time
-- Live clock with seconds and current date
-- Navigation placeholders for Jarvis, Notes, Digital Blat, and Profile
+## Current app
+- Neon-purple authentication screen: sign in and create account
+- Firebase email/password authentication adapter
+- Email verification after registration
+- Password reset email
+- Dashboard with live clock and navigation placeholders
 
-## Complete Android project setup
-This repository currently contains the Flutter app source and package manifest. To generate the native Android Gradle wrapper and platform files on a computer with Flutter installed, run from the repository root:
+## Generate the Android platform
+
+Run from the repository root on a computer with Flutter installed:
 
 ```bash
 flutter create . --platforms=android
+```
+
+## Connect Firebase Authentication
+
+1. Create a Firebase project in the Firebase Console.
+2. Add an Android app to that Firebase project. Use the Android application ID from `android/app/build.gradle` (or `android/app/build.gradle.kts`) after generating the Android platform.
+3. Install the Firebase CLI and FlutterFire CLI, then run:
+
+```bash
+firebase login
+dart pub global activate flutterfire_cli
+flutterfire configure
+```
+
+4. In the Firebase Console, open Authentication → Sign-in method and enable **Email/Password**.
+5. Download/setup the Android Firebase configuration using FlutterFire. Make sure the generated Android configuration and Google Services Gradle plugin are present.
+6. Fetch packages and run:
+
+```bash
 flutter pub get
 flutter run
 ```
 
-To build a release APK:
+The app initializes Firebase at startup. If Firebase configuration is missing, the UI still opens and displays a setup message when an authentication action is attempted.
+
+## Authentication behavior
+
+- Registration uses email and password and stores the nickname as the Firebase display name.
+- Firebase sends an email verification **link**, not a numeric one-time code.
+- “Forgot password?” sends Firebase's password-reset email link.
+- Sign-in currently uses the email address and password.
+
+The app source is in `lib/`. The native Android project and Firebase project configuration must be generated/configured locally; credentials and project-specific configuration are intentionally not fabricated or committed.
+
+## Build a release APK
 
 ```bash
 flutter build apk --release
 ```
 
-The APK will be created at `build/app/outputs/flutter-apk/app-release.apk`.
-
-Authentication, cloud sync, voice commands, and persistent notes are planned for later milestones and are not implemented in this starter yet.
+Output: `build/app/outputs/flutter-apk/app-release.apk`.
