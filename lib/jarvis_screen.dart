@@ -1,6 +1,11 @@
-import 'package:cloud_functions/cloud_functions.dart';
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:http/http.dart' as http;
+import 'package:llama_flutter_android/llama_flutter_android.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class JarvisScreen extends StatefulWidget {
@@ -12,25 +17,36 @@ class JarvisScreen extends StatefulWidget {
 }
 
 class _JarvisScreenState extends State<JarvisScreen> {
+  static const String _modelUrl =
+      'https://huggingface.co/tensorblock/Qwen_Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf?download=true';
+  static const int _expectedModelBytes = 484000000;
+
   final stt.SpeechToText _speech = stt.SpeechToText();
   final FlutterTts _tts = FlutterTts();
   final TextEditingController _input = TextEditingController();
   final ScrollController _scroll = ScrollController();
   final List<Map<String, String>> _messages = [];
+  final LlamaController _llama = LlamaController();
+
   bool _speechReady = false;
   bool _listening = false;
   bool _busy = false;
+  bool _modelReady = false;
+  bool _downloading = false;
   bool _speaking = false;
+  double _downloadProgress = 0;
+  String _status = 'Подготовка локального ИИ…';
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    _initializeVoice();
     _messages.add({
       'role': 'assistant',
-      'content': 'Привет, ${widget.nickname}! Я Джарвис. Нажми на микрофон и скажи, чем помочь.',
+      'content': 'Привет, ${widget.nickname}! Я Джарвис. Сейчас подготовлю локальный ИИ. После загрузки модели смогу отвечать без интернета.',
     });
+    _initializeVoice();
+    _prepareModel();
   }
 
   Future<void> _initializeVoice() async {
@@ -39,10 +55,10 @@ class _JarvisScreenState extends State<JarvisScreen> {
         onStatus: (status) {
           if (mounted) setState(() => _listening = status == 'listening');
         },
-        onError: (error) {
+        onError: (_) {
           if (mounted) setState(() {
             _listening = false;
-            _error = 'Не удалось распознать речь. Проверь разрешение микрофона.';
+            _error = 'Не удалось распознать речь. Можно написать сообщение ниже.';
           });
         },
       );
@@ -55,15 +71,94 @@ class _JarvisScreenState extends State<JarvisScreen> {
     }
   }
 
+  Future<File> _modelFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    return File('${directory.path}/qwen3-0.6b-q4_k_m.gguf');
+  }
+
+  Future<void> _prepareModel() async {
+    if (_downloading || _modelReady) return;
+    setState(() {
+      _downloading = true;
+      _error = null;
+      _status = 'Проверяю файл модели…';
+    });
+    final file = await _modelFile();
+    try {
+      if (!await file.exists() || await file.length() < _expectedModelBytes * 0.95) {
+        if (await file.exists()) await file.delete();
+        setState(() => _status = 'Загружаю ИИ-модель (около 484 МБ)…');
+        final client = http.Client();
+        try {
+          final request = http.Request('GET', Uri.parse(_modelUrl));
+          final response = await client.send(request);
+          if (response.statusCode != 200) {
+            throw Exception('Сервер модели ответил: ${response.statusCode}');
+          }
+          final total = response.contentLength ?? _expectedModelBytes;
+          var received = 0;
+          final sink = file.openWrite();
+          try {
+            await for (final chunk in response.stream) {
+              sink.add(chunk);
+              received += chunk.length;
+              if (mounted) {
+                setState(() => _downloadProgress = (received / total).clamp(0.0, 1.0));
+              }
+            }
+            await sink.flush();
+          } finally {
+            await sink.close();
+          }
+          if (received < _expectedModelBytes * 0.95) {
+            throw Exception('Загрузка модели завершилась не полностью.');
+          }
+        } finally {
+          client.close();
+        }
+      }
+      if (!mounted) return;
+      setState(() => _status = 'Запускаю модель на планшете…');
+      await _llama.loadModel(
+        modelPath: file.path,
+        threads: 4,
+        contextSize: 2048,
+      );
+      if (!mounted) return;
+      setState(() {
+        _modelReady = true;
+        _status = 'Локальный ИИ готов — интернет для ответов не нужен';
+        _error = null;
+      });
+      _messages.add({
+        'role': 'assistant',
+        'content': 'Готово! Моя языковая модель загружена на устройство. Теперь мои текстовые ответы формируются прямо на планшете.',
+      });
+      _scrollToBottom();
+    } catch (e) {
+      if (await file.exists() && await file.length() < _expectedModelBytes * 0.95) {
+        await file.delete();
+      }
+      if (mounted) {
+        setState(() {
+          _status = 'Модель пока не установлена';
+          _error = 'Не удалось подготовить локальный ИИ: $e. Проверь интернет и нажми «Повторить».';
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _downloading = false);
+    }
+  }
+
   Future<void> _toggleListening() async {
-    if (_busy) return;
+    if (_busy || !_modelReady) return;
     if (_listening) {
       await _speech.stop();
       return;
     }
     if (!_speechReady) await _initializeVoice();
     if (!_speechReady) {
-      setState(() => _error = 'Распознавание речи не поддерживается. Можно написать сообщение ниже.');
+      setState(() => _error = 'Распознавание речи недоступно. Напиши сообщение.');
       return;
     }
     setState(() => _error = null);
@@ -86,6 +181,10 @@ class _JarvisScreenState extends State<JarvisScreen> {
   Future<void> _send([String? voiceText]) async {
     final text = (voiceText ?? _input.text).trim();
     if (text.isEmpty || _busy) return;
+    if (!_modelReady) {
+      setState(() => _error = 'Сначала нужно загрузить локальную модель.');
+      return;
+    }
     _input.clear();
     setState(() {
       _error = null;
@@ -94,32 +193,37 @@ class _JarvisScreenState extends State<JarvisScreen> {
     });
     _scrollToBottom();
     try {
-      final callable = FirebaseFunctions.instance.httpsCallable(
-        'askJarvis',
-        options: HttpsCallableOptions(timeout: const Duration(seconds: 60)),
-      );
-      final recent = _messages.where((m) => m['role'] != 'system').toList();
-      final result = await callable.call({
-        'messages': recent.length > 16 ? recent.sublist(recent.length - 16) : recent,
-      });
-      final data = Map<String, dynamic>.from(result.data as Map);
-      final answer = (data['reply'] ?? '').toString().trim();
-      if (answer.isEmpty) throw Exception('Пустой ответ сервера');
+      final chat = <ChatMessage>[
+        ChatMessage(
+          role: 'system',
+          content: 'Ты Джарвис — дружелюбный персональный ИИ-помощник. Всегда отвечай на русском языке, понятно и по делу. Не выдумывай факты. Если не знаешь — честно скажи. Отвечай кратко, если пользователь не просит подробностей.',
+        ),
+        ..._messages.where((m) => m['role'] == 'user' || m['role'] == 'assistant')
+            .toList()
+            .take(17)
+            .map((m) => ChatMessage(role: m['role']!, content: m['content']!)),
+      ];
+      final answer = StringBuffer();
+      await for (final token in _llama.generateChat(
+        messages: chat,
+        template: 'chatml',
+        maxTokens: 320,
+        temperature: 0.7,
+        topP: 0.9,
+        repeatPenalty: 1.12,
+      )) {
+        answer.write(token);
+      }
+      final reply = answer.toString().trim();
+      if (reply.isEmpty) throw Exception('Модель не вернула ответ');
       if (!mounted) return;
-      setState(() => _messages.add({'role': 'assistant', 'content': answer}));
+      setState(() => _messages.add({'role': 'assistant', 'content': reply}));
       _scrollToBottom();
       _speaking = true;
-      await _tts.speak(answer);
+      await _tts.speak(reply);
       _speaking = false;
-    } on FirebaseFunctionsException catch (e) {
-      if (mounted) setState(() => _error = switch (e.code) {
-        'unauthenticated' => 'Сначала войди в аккаунт NEXSUS.',
-        'failed-precondition' => 'Сервер Джарвиса ещё не настроен: нужен защищённый ключ Groq.',
-        'resource-exhausted' => 'Достигнут временный лимит запросов. Попробуй позже.',
-        _ => 'Не удалось связаться с Джарвисом. Проверь интернет и настройку сервера.',
-      });
-    } catch (_) {
-      if (mounted) setState(() => _error = 'Не удалось получить ответ. Сервер Groq ещё может быть не подключён.');
+    } catch (e) {
+      if (mounted) setState(() => _error = 'Ошибка локальной модели: $e');
     } finally {
       if (mounted) setState(() {
         _busy = false;
@@ -131,8 +235,11 @@ class _JarvisScreenState extends State<JarvisScreen> {
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scroll.hasClients) {
-        _scroll.animateTo(_scroll.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+        _scroll.animateTo(
+          _scroll.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
       }
     });
   }
@@ -141,6 +248,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
   void dispose() {
     _speech.stop();
     _tts.stop();
+    _llama.dispose();
     _input.dispose();
     _scroll.dispose();
     super.dispose();
@@ -163,13 +271,38 @@ class _JarvisScreenState extends State<JarvisScreen> {
           const SizedBox(width: 12),
           const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('ДЖАРВИС', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: 2)),
-            Text('Голосовой ИИ-помощник', style: TextStyle(fontSize: 11, color: Colors.white60)),
+            Text('Локальный голосовой ИИ', style: TextStyle(fontSize: 11, color: Colors.white60)),
           ])),
-          Icon(Icons.circle, size: 8, color: _busy ? Colors.orangeAccent : const Color(0xFF36D9A0)),
+          Icon(Icons.circle, size: 8, color: _modelReady ? const Color(0xFF36D9A0) : Colors.orangeAccent),
           const SizedBox(width: 6),
-          Text(_busy ? 'ДУМАЮ' : 'ГОТОВ', style: const TextStyle(fontSize: 9, letterSpacing: 1, color: Colors.white60)),
+          Text(_busy ? 'ДУМАЮ' : (_modelReady ? 'ГОТОВ' : 'ЗАГРУЗКА'),
+              style: const TextStyle(fontSize: 9, letterSpacing: 1, color: Colors.white60)),
         ]),
       ),
+      if (!_modelReady)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(_status, style: const TextStyle(fontSize: 12, color: Colors.white70)),
+            const SizedBox(height: 8),
+            LinearProgressIndicator(value: _downloading ? _downloadProgress : null),
+            if (_downloading && _downloadProgress > 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 5),
+                child: Text('${(_downloadProgress * 100).toStringAsFixed(0)}%',
+                    style: const TextStyle(fontSize: 11, color: Colors.white60)),
+              ),
+            if (!_downloading && _error != null)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: _prepareModel,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Повторить загрузку'),
+                ),
+              ),
+          ]),
+        ),
       Expanded(
         child: ListView.builder(
           controller: _scroll,
@@ -200,7 +333,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
           },
         ),
       ),
-      if (_error != null)
+      if (_error != null && _modelReady)
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
           child: Text(_error!, style: const TextStyle(color: Colors.orangeAccent, fontSize: 12)),
@@ -209,7 +342,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
         padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
         child: Row(children: [
           IconButton(
-            onPressed: _toggleListening,
+            onPressed: _modelReady ? _toggleListening : null,
             iconSize: 27,
             color: _listening ? Colors.redAccent : const Color(0xFFB99AFF),
             icon: Icon(_listening ? Icons.stop_circle : Icons.mic),
@@ -218,12 +351,13 @@ class _JarvisScreenState extends State<JarvisScreen> {
           Expanded(
             child: TextField(
               controller: _input,
+              enabled: _modelReady && !_busy,
               minLines: 1,
               maxLines: 4,
               textInputAction: TextInputAction.send,
               onSubmitted: (_) => _send(),
               decoration: InputDecoration(
-                hintText: _listening ? 'Слушаю тебя…' : 'Напиши Джарвису…',
+                hintText: _modelReady ? (_listening ? 'Слушаю тебя…' : 'Напиши Джарвису…') : 'Загружается ИИ-модель…',
                 filled: true,
                 fillColor: const Color(0xFF171832),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
@@ -233,7 +367,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
           ),
           const SizedBox(width: 8),
           IconButton.filled(
-            onPressed: _busy ? null : () => _send(),
+            onPressed: _modelReady && !_busy ? () => _send() : null,
             style: IconButton.styleFrom(backgroundColor: const Color(0xFF7549E8)),
             icon: const Icon(Icons.send_rounded),
           ),
