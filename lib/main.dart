@@ -110,8 +110,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final time = '${_two(_now.hour)}:${_two(_now.minute)}:${_two(_now.second)}';
     return ListView(padding: const EdgeInsets.fromLTRB(20, 22, 20, 28), children: [
       Row(children: [
-        const Icon(Icons.bolt, color: Color(0xFFB18CFF), size: 30),
-        const SizedBox(width: 8),
+        const _NexsusAvatar(size: 38),
+        const SizedBox(width: 10),
         const Text('NEXSUS', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: 3)),
         const Spacer(),
         const Icon(Icons.circle, color: Color(0xFF36D9A0), size: 9),
@@ -130,14 +130,14 @@ class _HomeScreenState extends State<HomeScreen> {
       ])),
       const SizedBox(height: 16),
       _panel(child: Row(children: [
-        Container(width: 62, height: 62, decoration: const BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(colors: [Color(0xFF8C4DFF), Color(0xFF236BFF)])), child: const Icon(Icons.person, size: 38)),
+        const _NexsusAvatar(size: 62),
         const SizedBox(width: 14),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(widget.nickname, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
           SizedBox(height: 4),
           Text('Пользователь NEXSUS', style: TextStyle(color: Colors.white60, fontSize: 12)),
         ])),
-        const Icon(Icons.verified, color: Color(0xFF38DDA4)),
+        const Icon(Icons.verified, color: Color(0xFFFFD27A)),
       ])),
       const SizedBox(height: 22),
       const Text('БЫСТРЫЙ ДОСТУП', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.4)),
@@ -213,4 +213,69 @@ class _PlaceholderPage extends StatelessWidget {
       Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60)),
     ]),
   ));
+}
+
+ 
+class _NexsusAvatar extends StatelessWidget {
+  const _NexsusAvatar({this.size = 56});
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: size,
+    height: size,
+    child: DecoratedBox(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const RadialGradient(
+          colors: [Color(0xFF493019), Color(0xFF17111A), Color(0xFF080A13)],
+          stops: [0, .58, 1],
+        ),
+        border: Border.all(color: const Color(0xFFFFD27A), width: size * .035),
+        boxShadow: const [
+          BoxShadow(color: Color(0x66FFB84D), blurRadius: 13, spreadRadius: 1),
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Transform.rotate(
+            angle: -.42,
+            child: Container(
+              width: size * .78,
+              height: size * .30,
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFFFFD27A), width: size * .025),
+                borderRadius: BorderRadius.circular(size),
+              ),
+            ),
+          ),
+          Text(
+            'N',
+            style: TextStyle(
+              fontFamily: 'serif',
+              fontSize: size * .68,
+              height: 1,
+              fontWeight: FontWeight.w900,
+              color: const Color(0xFFFFD27A),
+              shadows: const [Shadow(color: Color(0xFFFFA629), blurRadius: 12)],
+            ),
+          ),
+          Positioned(
+            top: size * .10,
+            right: size * .18,
+            child: Container(
+              width: size * .07,
+              height: size * .07,
+              decoration: const BoxDecoration(
+                color: Color(0xFFFFF0C2),
+                shape: BoxShape.circle,
+                boxShadow: [BoxShadow(color: Color(0xFFFFC45C), blurRadius: 7)],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
