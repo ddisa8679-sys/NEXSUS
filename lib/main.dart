@@ -91,6 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _timer;
   DateTime _now = DateTime.now();
   int _selected = 0;
+  final Set<int> _visitedTabs = {0};
 
   @override
   void initState() {
@@ -123,18 +124,21 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final pages = [
       _dashboard(),
-      JarvisScreen(nickname: widget.nickname),
-      const NotesScreen(),
-      const CalendarScreen(),
-      const _PlaceholderPage(icon: Icons.access_time, title: 'Цифровой Блат', subtitle: 'Персональный цифровой циферблат.'),
-      ProfileScreen(nickname: widget.nickname, settings: widget.settings),
+      _visitedTabs.contains(1) ? JarvisScreen(nickname: widget.nickname) : const SizedBox.shrink(),
+      _visitedTabs.contains(2) ? const NotesScreen() : const SizedBox.shrink(),
+      _visitedTabs.contains(3) ? const CalendarScreen() : const SizedBox.shrink(),
+      _visitedTabs.contains(4) ? _ClockPage(now: _now, date: _date) : const SizedBox.shrink(),
+      _visitedTabs.contains(5) ? ProfileScreen(nickname: widget.nickname, settings: widget.settings) : const SizedBox.shrink(),
     ];
     return Scaffold(
       body: SafeArea(child: Column(children: [
         Expanded(child: IndexedStack(index: _selected, children: pages)),
         NavigationBar(
           selectedIndex: _selected,
-          onDestinationSelected: (value) => setState(() => _selected = value),
+          onDestinationSelected: (value) => setState(() {
+            _visitedTabs.add(value);
+            _selected = value;
+          }),
           destinations: const [
             NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Главная'),
             NavigationDestination(icon: Icon(Icons.graphic_eq), label: 'Джарвис'),
@@ -207,7 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _action(IconData icon, String title, String subtitle, int page) => InkWell(
     borderRadius: BorderRadius.circular(18),
-    onTap: () { if (page == 6) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const FocusScreen())); } else if (page == 7) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TasksScreen())); } else { setState(() => _selected = page); } },
+    onTap: () { if (page == 6) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const FocusScreen())); } else if (page == 7) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TasksScreen())); } else { setState(() { _visitedTabs.add(page); _selected = page; }); } },
     child: Ink(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
@@ -234,6 +238,37 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
     child: child,
   );
+}
+
+class _ClockPage extends StatelessWidget {
+  const _ClockPage({required this.now, required this.date});
+
+  final DateTime now;
+  final String date;
+
+  @override
+  Widget build(BuildContext context) {
+    final time = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    final seconds = now.second.toString().padLeft(2, '0');
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.schedule_rounded, size: 34, color: Color(0xFFFFD27A)),
+            const SizedBox(height: 24),
+            Text(time, style: const TextStyle(fontSize: 76, fontWeight: FontWeight.w300, letterSpacing: 2, fontFeatures: [FontFeature.tabularFigures()])),
+            Text(seconds, style: const TextStyle(fontSize: 20, color: Color(0xFFFFD27A), letterSpacing: 3)),
+            const SizedBox(height: 16),
+            Text(date, textAlign: TextAlign.center, style: const TextStyle(fontSize: 15, color: Colors.white60)),
+            const SizedBox(height: 28),
+            const Text('ТВОЁ ВРЕМЯ. ТВОЙ РИТМ.', style: TextStyle(fontSize: 11, letterSpacing: 2, color: Colors.white38)),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _PlaceholderPage extends StatelessWidget {
