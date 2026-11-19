@@ -16,7 +16,9 @@ class _NotesScreenState extends State<NotesScreen> {
   final List<String> _notes = [];
   bool _ready = false;
   bool _listening = false;
-  String _status = 'Нажми на микрофон и говори — запись появится здесь';
+  bool _voicePressed = false;
+  String _voiceDraft = '';
+  String _status = 'Зажми микрофон, говори и отпусти — заметка сохранится';
 
   @override
   void initState() {
@@ -41,16 +43,16 @@ class _NotesScreenState extends State<NotesScreen> {
   }
 
   Future<void> _startVoice() async {
-    if (_listening) {
-      await _speech.stop();
-      if (mounted) setState(() => _listening = false);
-      return;
-    }
+    _voicePressed = true;
+    _voiceDraft = '';
+    _text.clear();
 
     _ready = await _speech.initialize(
       onStatus: (status) {
         if (!mounted) return;
-        if (status == 'notListening' || status == 'done') {
+        if (status == 'listening') {
+          setState(() => _listening = true);
+        } else if (status == 'notListening' || status == 'done') {
           setState(() => _listening = false);
         }
       },
@@ -58,13 +60,13 @@ class _NotesScreenState extends State<NotesScreen> {
         if (!mounted) return;
         setState(() {
           _listening = false;
-          _status = 'Не удалось распознать речь. Попробуй ещё раз или введи текст.';
+          _status = 'Не удалось распознать речь. Проверь микрофон и попробуй ещё раз.';
         });
       },
     );
 
+    if (!_voicePressed || !mounted) return;
     if (!_ready) {
-      if (!mounted) return;
       setState(() {
         _status = 'Голосовой ввод недоступен. Проверь разрешение микрофона и службу распознавания речи Android.';
       });
@@ -73,23 +75,40 @@ class _NotesScreenState extends State<NotesScreen> {
 
     setState(() {
       _listening = true;
-      _status = 'Слушаю… говори, запись сохранится после паузы';
+      _status = 'Слушаю… отпусти кнопку, чтобы сохранить заметку';
     });
 
     await _speech.listen(
       localeId: 'ru_RU',
       listenFor: const Duration(minutes: 2),
-      pauseFor: const Duration(seconds: 4),
+      pauseFor: const Duration(seconds: 30),
       partialResults: true,
-      onResult: (result) async {
+      onResult: (result) {
         if (!mounted) return;
         final words = result.recognizedWords.trim();
-        setState(() => _text.text = words);
-        if (result.finalResult && words.isNotEmpty) {
-          await _addNote(words);
+        if (words.isNotEmpty) {
+          _voiceDraft = words;
+          setState(() => _text.text = words);
         }
       },
     );
+  }
+
+  Future<void> _stopVoice() async {
+    _voicePressed = false;
+    if (_listening) await _speech.stop();
+    if (!mounted) return;
+    setState(() => _listening = false);
+
+    // Give the speech plugin a moment to deliver its final recognition result.
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    if (!mounted) return;
+    final words = _voiceDraft.trim().isNotEmpty ? _voiceDraft.trim() : _text.text.trim();
+    if (words.isNotEmpty) {
+      await _addNote(words);
+    } else {
+      setState(() => _status = 'Речь не распознана. Зажми кнопку и попробуй ещё раз.');
+    }
   }
 
   Future<void> _addNote([String? spoken]) async {
@@ -136,7 +155,9 @@ class _NotesScreenState extends State<NotesScreen> {
           child: Column(
             children: [
               GestureDetector(
-                onTap: _startVoice,
+                onLongPressStart: (_) => _startVoice(),
+                onLongPressEnd: (_) => _stopVoice(),
+                onLongPressCancel: _stopVoice,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
                   width: 84,
@@ -151,7 +172,7 @@ class _NotesScreenState extends State<NotesScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              Text(_listening ? 'ОСТАНОВИТЬ ЗАПИСЬ' : 'НАЖМИ И ГОВОРИ', style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+              Text(_listening ? 'ОТПУСТИ, ЧТОБЫ СОХРАНИТЬ' : 'ЗАЖМИ И ГОВОРИ', style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
               const SizedBox(height: 18),
               TextField(
                 controller: _text,
