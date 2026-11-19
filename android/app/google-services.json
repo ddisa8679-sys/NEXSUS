@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "486354335796",
+    "project_id": "nexsus-15634",
+    "storage_bucket": "nexsus-15634.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:486354335796:android:3a8778b55a067c96e13261",
+        "android_client_info": {
+          "package_name": "com.nexsus.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvP7yXRUcBzuAzR9N2SC6v3pGkSrTrL5I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
