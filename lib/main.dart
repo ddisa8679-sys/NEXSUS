@@ -131,8 +131,8 @@ class _HomeScreenState extends State<HomeScreen> {
       _panel(child: Row(children: [
         Container(width: 62, height: 62, decoration: const BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(colors: [Color(0xFF8C4DFF), Color(0xFF236BFF)])), child: const Icon(Icons.person, size: 38)),
         const SizedBox(width: 14),
-        const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(widget.nickname, style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(widget.nickname, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
           SizedBox(height: 4),
           Text('Пользователь NEXSUS', style: TextStyle(color: Colors.white60, fontSize: 12)),
         ])),
