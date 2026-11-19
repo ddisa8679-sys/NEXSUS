@@ -20,6 +20,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   final List<Map<String, dynamic>> _events = [];
   bool _loaded = false;
   bool _notificationsReady = false;
+  bool _exactAlarmsAllowed = false;
   String _notificationStatus = 'Подготавливаю уведомления…';
   DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
 
@@ -40,7 +41,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       final granted = await androidPlugin?.requestNotificationsPermission();
       _notificationsReady = granted ?? true;
       if (_notificationsReady) {
-        await androidPlugin?.requestExactAlarmsPermission();
+        _exactAlarmsAllowed = await androidPlugin?.requestExactAlarmsPermission() ?? false;
         await androidPlugin?.createNotificationChannel(const AndroidNotificationChannel(
           _channelId, 'Напоминания календаря',
           description: 'Напоминания за день и в день важного события',
@@ -121,7 +122,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
       await _notifications.zonedSchedule(
         baseId, 'Уже завтра: $title', '$kind — напоминание NEXSUS',
         tz.TZDateTime.from(beforeTime, tz.local), details,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: _exactAlarmsAllowed ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,
+        matchDateTimeComponents: event['yearly'] == true ? DateTimeComponents.dateAndTime : null,
         payload: eventId,
       );
     }
@@ -129,7 +131,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
       await _notifications.zonedSchedule(
         baseId + 1, 'Сегодня: $title', 'Наступила важная дата · $kind',
         tz.TZDateTime.from(eventTime, tz.local), details,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: _exactAlarmsAllowed ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,
+        matchDateTimeComponents: event['yearly'] == true ? DateTimeComponents.dateAndTime : null,
         payload: eventId,
       );
     }
