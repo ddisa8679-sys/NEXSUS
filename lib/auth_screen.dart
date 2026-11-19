@@ -3,8 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'auth_service.dart';
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key, required this.firebaseReady});
+  const AuthScreen({super.key, required this.firebaseReady, required this.onAuthenticated});
   final bool firebaseReady;
+  final void Function(BuildContext context, String nickname) onAuthenticated;
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -37,15 +38,21 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() => _busy = true);
     try {
       if (_register) {
-        await _auth.register(
+        final credential = await _auth.register(
           email: _email.text,
           password: _password.text,
           nickname: _nickname.text,
         );
-        _message('Аккаунт создан. Проверь почту — отправлена ссылка подтверждения.');
+        final nickname = credential.user?.displayName?.trim().isNotEmpty == true
+            ? credential.user!.displayName!.trim()
+            : _nickname.text.trim();
+        if (mounted) widget.onAuthenticated(context, nickname);
       } else {
-        await _auth.signIn(email: _email.text, password: _password.text);
-        _message('Вход выполнен.');
+        final credential = await _auth.signIn(email: _email.text, password: _password.text);
+        final nickname = credential.user?.displayName?.trim().isNotEmpty == true
+            ? credential.user!.displayName!.trim()
+            : (_email.text.trim().split('@').first);
+        if (mounted) widget.onAuthenticated(context, nickname);
       }
     } on FirebaseAuthException catch (e) {
       _message(_authError(e.code));
@@ -118,7 +125,8 @@ class _AuthScreenState extends State<AuthScreen> {
                           validator: (v) => (v == null || !v.contains('@')) ? 'Укажи корректную почту' : null),
                         if (_register) ...[
                           const SizedBox(height: 14),
-                          _field(_nickname, 'Никнейм', Icons.badge_outlined),
+                          _field(_nickname, 'Никнейм', Icons.badge_outlined,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? 'Придумай никнейм' : null),
                         ],
                         const SizedBox(height: 14),
                         TextFormField(
