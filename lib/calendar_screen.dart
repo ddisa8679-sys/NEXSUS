@@ -94,20 +94,26 @@ class _CalendarScreenState extends State<CalendarScreen> {
   int _notificationId(String id, int offset) =>
       ((int.tryParse(id) ?? id.hashCode).abs() % 100000000) * 2 + offset;
 
+  bool _sameDate(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
   Future<void> _scheduleEvent(Map<String, dynamic> event) async {
     if (!_notificationsReady) return;
     final eventId = event['id'] as String;
     final date = _nextDate(event);
     final title = event['title'] as String;
     final kind = event['kind'] as String? ?? 'Важная дата';
+    final yearly = event['yearly'] == true;
     final dayBefore = DateTime(date.year, date.month, date.day).subtract(const Duration(days: 1));
     final eventDay = DateTime(date.year, date.month, date.day);
     final now = DateTime.now();
-    final beforeTime = DateTime(dayBefore.year, dayBefore.month, dayBefore.day, 9);
+    var beforeTime = DateTime(dayBefore.year, dayBefore.month, dayBefore.day, 9);
     var eventTime = DateTime(eventDay.year, eventDay.month, eventDay.day, 9);
-    if (eventTime.isBefore(now) && eventDay.year == now.year && eventDay.month == now.month && eventDay.day == now.day) {
-      eventTime = now.add(const Duration(minutes: 1));
-    }
+    final beforeIsLateToday = _sameDate(dayBefore, now) && !beforeTime.isAfter(now);
+    final eventIsLateToday = _sameDate(eventDay, now) && !eventTime.isAfter(now);
+    if (beforeIsLateToday) beforeTime = now.add(const Duration(minutes: 1));
+    if (eventIsLateToday) eventTime = now.add(const Duration(minutes: 1));
+
     const details = NotificationDetails(
       android: AndroidNotificationDetails(
         _channelId, 'Напоминания календаря',
@@ -118,14 +124,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
     );
     final baseId = _notificationId(eventId, 0);
-    await _notifications.cancel(baseId);
-    await _notifications.cancel(baseId + 1);
+    for (var offset = 0; offset < 4; offset++) {
+      await _notifications.cancel(baseId + offset);
+    }
+
     if (beforeTime.isAfter(now)) {
       await _notifications.zonedSchedule(
         baseId, 'Уже завтра: $title', '$kind — напоминание NEXSUS',
         tz.TZDateTime.from(beforeTime, tz.local), details,
         androidScheduleMode: _exactAlarmsAllowed ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,
-        matchDateTimeComponents: event['yearly'] == true ? DateTimeComponents.dateAndTime : null,
+        matchDateTimeComponents: yearly && !beforeIsLateToday ? DateTimeComponents.dateAndTime : null,
         payload: eventId,
       );
     }
@@ -134,7 +142,33 @@ class _CalendarScreenState extends State<CalendarScreen> {
         baseId + 1, 'Сегодня: $title', 'Наступила важная дата · $kind',
         tz.TZDateTime.from(eventTime, tz.local), details,
         androidScheduleMode: _exactAlarmsAllowed ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,
-        matchDateTimeComponents: event['yearly'] == true ? DateTimeComponents.dateAndTime : null,
+        matchDateTimeComponents: yearly && !eventIsLateToday ? DateTimeComponents.dateAndTime : null,
+        payload: eventId,
+      );
+    }
+
+    // If this year's reminder time has already passed, notify shortly and
+    // separately schedule the correct 09:00 recurrence for next year.
+    if (yearly && beforeIsLateToday) {
+      final nextYear = DateTime(date.year + 1, date.month, date.day);
+      final nextBefore = nextYear.subtract(const Duration(days: 1));
+      final recurring = DateTime(nextBefore.year, nextBefore.month, nextBefore.day, 9);
+      await _notifications.zonedSchedule(
+        baseId + 2, 'Уже завтра: $title', '$kind — напоминание NEXSUS',
+        tz.TZDateTime.from(recurring, tz.local), details,
+        androidScheduleMode: _exactAlarmsAllowed ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,
+        matchDateTimeComponents: DateTimeComponents.dateAndTime,
+        payload: eventId,
+      );
+    }
+    if (yearly && eventIsLateToday) {
+      final nextYear = DateTime(date.year + 1, date.month, date.day);
+      final recurring = DateTime(nextYear.year, nextYear.month, nextYear.day, 9);
+      await _notifications.zonedSchedule(
+        baseId + 3, 'Сегодня: $title', 'Наступила важная дата · $kind',
+        tz.TZDateTime.from(recurring, tz.local), details,
+        androidScheduleMode: _exactAlarmsAllowed ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,
+        matchDateTimeComponents: DateTimeComponents.dateAndTime,
         payload: eventId,
       );
     }
@@ -218,7 +252,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final id = event['id'] as String;
     final baseId = _notificationId(id, 0);
     await _notifications.cancel(baseId);
-    await _notifications.cancel(baseId + 1);
+    for (var offset = 1; offset < 4; offset++) {
+      await _notifications.cancel(baseId + offset);
+    }
     setState(() => _events.removeWhere((e) => e['id'] == id));
     await _save();
   }
