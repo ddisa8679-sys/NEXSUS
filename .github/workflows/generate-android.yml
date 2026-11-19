@@ -1,0 +1,53 @@
+name: Generate Android platform
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Generate Android project
+        run: flutter create . --platforms=android --org com.nexsus --project-name app
+
+      - name: Verify Android application ID
+        shell: bash
+        run: |
+          set -euo pipefail
+          GRADLE_FILE="android/app/build.gradle.kts"
+          if [ ! -f "$GRADLE_FILE" ]; then
+            GRADLE_FILE="android/app/build.gradle"
+          fi
+          if [ ! -f "$GRADLE_FILE" ]; then
+            echo "Could not find the Android app Gradle file."
+            exit 1
+          fi
+          grep -q 'com.nexsus.app' "$GRADLE_FILE" || {
+            echo "Generated application ID is not com.nexsus.app; refusing to commit."
+            cat "$GRADLE_FILE"
+            exit 1
+          }
+          echo "Verified com.nexsus.app in $GRADLE_FILE"
+
+      - name: Commit generated Android platform
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add android
+          if git diff --cached --quiet; then
+            echo "No Android platform changes to commit."
+            exit 0
+          fi
+          git commit -m "Generate Android platform for NEXSUS"
+          git push
