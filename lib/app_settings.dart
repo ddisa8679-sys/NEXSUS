@@ -20,13 +20,17 @@ class AppSettings extends ChangeNotifier {
     'emerald': Color(0xFF24B889),
     'rose': Color(0xFFE45D9A),
     'amber': Color(0xFFFFB84D),
+    'cyan': Color(0xFF22C7D6),
+    'crimson': Color(0xFFE34D65),
   }[theme] ?? const Color(0xFF8050FF);
 
   Color get scaffoldColor => background == 'black'
       ? const Color(0xFF030407)
       : background == 'navy'
           ? const Color(0xFF071426)
-          : const Color(0xFF070817);
+          : background == 'forest'
+              ? const Color(0xFF071A17)
+              : const Color(0xFF070817);
 
   String? get fontFamily => const {
     'serif': 'serif',
