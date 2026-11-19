@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'auth_screen.dart';
+import 'jarvis_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -82,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final pages = [
       _dashboard(),
-      const _PlaceholderPage(icon: Icons.graphic_eq, title: 'Джарвис', subtitle: 'Голосовой помощник появится на следующем этапе.'),
+      JarvisScreen(nickname: widget.nickname),
       const _PlaceholderPage(icon: Icons.note_alt_outlined, title: 'Быстрые заметки', subtitle: 'Здесь будут ваши заметки.'),
       const _PlaceholderPage(icon: Icons.access_time, title: 'Цифровой Блат', subtitle: 'Персональный цифровой циферблат.'),
       const _PlaceholderPage(icon: Icons.person_outline, title: 'Профиль', subtitle: 'Настройки профиля и аватара.'),
