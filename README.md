@@ -2,6 +2,14 @@
 
 Personal-use Android assistant. iOS is postponed.
 
+## Android application identity
+
+The permanent Android application ID for NEXSUS is:
+
+`com.nexsus.app`
+
+Use this exact value when registering the Android app in Firebase. Keep the Android Gradle `namespace` and `applicationId` aligned with this value.
+
 ## Current app
 - Neon-purple authentication screen: sign in and create account
 - Firebase email/password authentication adapter
@@ -11,16 +19,18 @@ Personal-use Android assistant. iOS is postponed.
 
 ## Generate the Android platform
 
-Run from the repository root on a computer with Flutter installed:
+The repository currently contains the Flutter/Dart application code but not the native Android platform folder. Generate it from the repository root on a computer with Flutter installed:
 
 ```bash
 flutter create . --platforms=android
 ```
 
+After generation, set `namespace` and `applicationId` in `android/app/build.gradle` (or `android/app/build.gradle.kts`) to `com.nexsus.app`.
+
 ## Connect Firebase Authentication
 
-1. Create a Firebase project in the Firebase Console.
-2. Add an Android app to that Firebase project. Use the Android application ID from `android/app/build.gradle` (or `android/app/build.gradle.kts`) after generating the Android platform.
+1. Open the Firebase project named **NEXSUS**.
+2. Add an Android app and enter the exact Android package name `com.nexsus.app`.
 3. Install the Firebase CLI and FlutterFire CLI, then run:
 
 ```bash
@@ -30,7 +40,7 @@ flutterfire configure
 ```
 
 4. In the Firebase Console, open Authentication → Sign-in method and enable **Email/Password**.
-5. Download/setup the Android Firebase configuration using FlutterFire. Make sure the generated Android configuration and Google Services Gradle plugin are present.
+5. Complete the Android Firebase configuration using FlutterFire. Do not commit private service-account keys or other credentials.
 6. Fetch packages and run:
 
 ```bash
@@ -47,7 +57,7 @@ The app initializes Firebase at startup. If Firebase configuration is missing, t
 - “Forgot password?” sends Firebase's password-reset email link.
 - Sign-in currently uses the email address and password.
 
-The app source is in `lib/`. The native Android project and Firebase project configuration must be generated/configured locally; credentials and project-specific configuration are intentionally not fabricated or committed.
+The app source is in `lib/`. The native Android project and Firebase project configuration must be generated/configured; they are not fabricated or committed.
 
 ## Build a release APK
 
