@@ -10,6 +10,9 @@ on:
       - "android/**"
       - "pubspec.yaml"
       - "pubspec.lock"
+      - "functions/**"
+      - "firebase.json"
+      - ".firebaserc"
       - ".github/workflows/build-android.yml"
 
 permissions:
