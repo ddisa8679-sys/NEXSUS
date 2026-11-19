@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'auth_screen.dart';
 import 'jarvis_screen.dart';
@@ -8,6 +9,7 @@ import 'app_settings.dart';
 import 'profile_screen.dart';
 import 'focus_screen.dart';
 import 'tasks_screen.dart';
+import 'calendar_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,6 +51,9 @@ class _NexsusAppState extends State<NexsusApp> {
     builder: (context, _) => MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'NEXSUS',
+      locale: Locale(_settings.language),
+      supportedLocales: const [Locale('ru'), Locale('en')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       theme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: _settings.scaffoldColor,
@@ -120,6 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _dashboard(),
       JarvisScreen(nickname: widget.nickname),
       const NotesScreen(),
+      const CalendarScreen(),
       const _PlaceholderPage(icon: Icons.access_time, title: 'Цифровой Блат', subtitle: 'Персональный цифровой циферблат.'),
       ProfileScreen(nickname: widget.nickname, settings: widget.settings),
     ];
@@ -178,9 +184,10 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           _action(Icons.mic, 'Джарвис', 'Голосовой помощник', 1),
           _action(Icons.note_alt_outlined, 'Заметки', 'Быстрые записи', 2),
-          _action(Icons.person_outline, 'Профиль', 'Личные данные и настройки', 4),
-          _action(Icons.center_focus_strong, 'Фокус', 'Таймер концентрации', 5),
-          _action(Icons.checklist_rounded, 'Мои задачи', 'План и сводка дня', 6),
+          _action(Icons.person_outline, 'Профиль', 'Личные данные и настройки', 5),
+          _action(Icons.calendar_month, 'Календарь', 'Дни рождения и события', 3),
+          _action(Icons.center_focus_strong, 'Фокус', 'Таймер концентрации', 6),
+          _action(Icons.checklist_rounded, 'Мои задачи', 'План и сводка дня', 7),
         ],
       ),
       const SizedBox(height: 18),
@@ -199,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _action(IconData icon, String title, String subtitle, int page) => InkWell(
     borderRadius: BorderRadius.circular(18),
-    onTap: () { if (page == 5) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const FocusScreen())); } else if (page == 6) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TasksScreen())); } else { setState(() => _selected = page); } },
+    onTap: () { if (page == 6) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const FocusScreen())); } else if (page == 7) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TasksScreen())); } else { setState(() => _selected = page); } },
     child: Ink(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
