@@ -3,7 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'auth_service.dart';
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
+  const AuthScreen({super.key, required this.firebaseReady});
+  final bool firebaseReady;
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -17,7 +18,7 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _register = false;
   bool _obscure = true;
   bool _busy = false;
-  final _auth = AuthService();
+  AuthService get _auth => AuthService();
 
   @override
   void dispose() {
@@ -29,6 +30,10 @@ class _AuthScreenState extends State<AuthScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate() || _busy) return;
+    if (!widget.firebaseReady) {
+      _message('Firebase не настроен. Добавь google-services.json и настрой Android-приложение.');
+      return;
+    }
     setState(() => _busy = true);
     try {
       if (_register) {
@@ -195,6 +200,10 @@ class _AuthScreenState extends State<AuthScreen> {
         TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена')),
         FilledButton(onPressed: () async {
           Navigator.pop(context);
+          if (!widget.firebaseReady) {
+            _message('Firebase не настроен. Добавь google-services.json и настрой Android-приложение.');
+            return;
+          }
           if (!_email.text.contains('@')) {
             _message('Сначала введи корректный адрес почты.');
             return;
