@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'package:llama_flutter_android/llama_flutter_android.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class JarvisScreen extends StatefulWidget {
@@ -20,6 +22,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
   static const String _modelUrl =
       'https://huggingface.co/tensorblock/Qwen_Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf?download=true';
   static const int _expectedModelBytes = 484000000;
+  static const String _historyKey = 'nexsus_jarvis_history_v1';
 
   final stt.SpeechToText _speech = stt.SpeechToText();
   final FlutterTts _tts = FlutterTts();
@@ -45,8 +48,83 @@ class _JarvisScreenState extends State<JarvisScreen> {
       'role': 'assistant',
       'content': 'Привет, ${widget.nickname}! Я Джарвис. Сейчас подготовлю локальный ИИ. После загрузки модели смогу отвечать без интернета.',
     });
+    _loadConversation();
     _initializeVoice();
     _prepareModel();
+  }
+
+  Future<void> _loadConversation() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_historyKey);
+      if (raw == null) return;
+      final decoded = jsonDecode(raw) as List<dynamic>;
+      final restored = decoded
+          .whereType<Map>()
+          .map((item) => Map<String, String>.from(item))
+          .where((item) =>
+              (item['role'] == 'user' || item['role'] == 'assistant') &&
+              (item['content'] ?? '').trim().isNotEmpty)
+          .toList();
+      if (!mounted || restored.isEmpty) return;
+      setState(() {
+        _messages
+          ..clear()
+          ..addAll(restored.take(60));
+      });
+      _scrollToBottom();
+    } catch (_) {
+      // A damaged local history must never prevent the assistant from starting.
+    }
+  }
+
+  Future<void> _saveConversation() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = _messages
+          .where((m) => m['role'] == 'user' || m['role'] == 'assistant')
+          .toList();
+      await prefs.setString(_historyKey, jsonEncode(saved.take(60).toList()));
+    } catch (_) {
+      if (mounted) {
+        setState(() => _error = 'Не удалось сохранить историю диалога на устройстве.');
+      }
+    }
+  }
+
+  Future<void> _clearConversation() async {
+    if (_busy || !mounted) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Очистить историю?'),
+        content: const Text('Все сохранённые сообщения Джарвиса на этом устройстве будут удалены.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Отмена'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Очистить'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_historyKey);
+    if (!mounted) return;
+    setState(() {
+      _messages
+        ..clear()
+        ..add({
+          'role': 'assistant',
+          'content': 'История очищена. Начнём новый разговор?',
+        });
+      _error = null;
+    });
+    _scrollToBottom();
   }
 
   Future<void> _initializeVoice() async {
@@ -130,10 +208,13 @@ class _JarvisScreenState extends State<JarvisScreen> {
         _status = 'Локальный ИИ готов — интернет для ответов не нужен';
         _error = null;
       });
-      _messages.add({
-        'role': 'assistant',
-        'content': 'Готово! Моя языковая модель загружена на устройство. Теперь мои текстовые ответы формируются прямо на планшете.',
-      });
+      if (!_messages.any((m) => m['role'] == 'user')) {
+        _messages.add({
+          'role': 'assistant',
+          'content': 'Готово! Моя языковая модель загружена на устройство. Теперь мои текстовые ответы формируются прямо на планшете.',
+        });
+      }
+      await _saveConversation();
       _scrollToBottom();
     } catch (e) {
       if (await file.exists() && await file.length() < _expectedModelBytes * 0.95) {
@@ -192,6 +273,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
       _messages.add({'role': 'user', 'content': text});
     });
     _scrollToBottom();
+    await _saveConversation();
     try {
       final chat = <ChatMessage>[
         ChatMessage(
@@ -218,6 +300,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
       if (reply.isEmpty) throw Exception('Модель не вернула ответ');
       if (!mounted) return;
       setState(() => _messages.add({'role': 'assistant', 'content': reply}));
+      await _saveConversation();
       _scrollToBottom();
       _speaking = true;
       await _tts.speak(reply);
@@ -271,8 +354,13 @@ class _JarvisScreenState extends State<JarvisScreen> {
           const SizedBox(width: 12),
           const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('ДЖАРВИС', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: 2)),
-            Text('Локальный голосовой ИИ', style: TextStyle(fontSize: 11, color: Colors.white60)),
+            Text('Локальный голосовой ИИ · память диалога', style: TextStyle(fontSize: 10, color: Colors.white60)),
           ])),
+          IconButton(
+            tooltip: 'Очистить историю',
+            onPressed: _busy ? null : _clearConversation,
+            icon: const Icon(Icons.delete_sweep_outlined, color: Colors.white60),
+          ),
           Icon(Icons.circle, size: 8, color: _modelReady ? const Color(0xFF36D9A0) : Colors.orangeAccent),
           const SizedBox(width: 6),
           Text(_busy ? 'ДУМАЮ' : (_modelReady ? 'ГОТОВ' : 'ЗАГРУЗКА'),
