@@ -139,6 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
             NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Главная'),
             NavigationDestination(icon: Icon(Icons.graphic_eq), label: 'Джарвис'),
             NavigationDestination(icon: Icon(Icons.sticky_note_2_outlined), label: 'Заметки'),
+            NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month), label: 'Календарь'),
             NavigationDestination(icon: Icon(Icons.schedule), label: 'Часы'),
             NavigationDestination(icon: Icon(Icons.person_outline), label: 'Профиль'),
           ],
