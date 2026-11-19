@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'auth_screen.dart';
 
 void main() => runApp(const NexsusApp());
 
@@ -15,7 +16,7 @@ class NexsusApp extends StatelessWidget {
       colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF8050FF), brightness: Brightness.dark),
       useMaterial3: true,
     ),
-    home: const HomeScreen(),
+    home: const AuthScreen(),
   );
 }
 
