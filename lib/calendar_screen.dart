@@ -53,9 +53,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
     await _loadEvents();
     if (mounted) setState(() {
-      _notificationStatus = _notificationsReady
-          ? 'Уведомления включены · за день и в день события'
-          : 'Разреши уведомления NEXSUS в настройках Android';
+      _notificationStatus = !_notificationsReady
+          ? 'Разреши уведомления NEXSUS в настройках Android'
+          : _exactAlarmsAllowed
+              ? 'Точные уведомления включены · за день и в день события'
+              : 'Уведомления включены · Android может немного сдвигать время';
     });
   }
 
