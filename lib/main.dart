@@ -4,6 +4,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'auth_screen.dart';
 import 'jarvis_screen.dart';
 import 'notes_screen.dart';
+import 'app_settings.dart';
+import 'profile_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,33 +19,63 @@ Future<void> main() async {
   runApp(NexsusApp(firebaseReady: firebaseReady));
 }
 
-class NexsusApp extends StatelessWidget {
+class NexsusApp extends StatefulWidget {
   const NexsusApp({super.key, required this.firebaseReady});
   final bool firebaseReady;
   @override
-  Widget build(BuildContext context) => MaterialApp(
-    debugShowCheckedModeBanner: false,
-    title: 'NEXSUS',
-    theme: ThemeData(
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: const Color(0xFF070817),
-      colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF8050FF), brightness: Brightness.dark),
-      useMaterial3: true,
-    ),
-    home: AuthScreen(
-      firebaseReady: firebaseReady,
-      onAuthenticated: (context, nickname) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => HomeScreen(nickname: nickname)),
-        );
-      },
+  State<NexsusApp> createState() => _NexsusAppState();
+}
+
+class _NexsusAppState extends State<NexsusApp> {
+  final AppSettings _settings = AppSettings();
+
+  @override
+  void initState() {
+    super.initState();
+    _settings.load();
+  }
+
+  @override
+  void dispose() {
+    _settings.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _settings,
+    builder: (context, _) => MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'NEXSUS',
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: _settings.scaffoldColor,
+        colorScheme: ColorScheme.fromSeed(seedColor: _settings.accent, brightness: Brightness.dark),
+        fontFamily: _settings.fontFamily,
+        useMaterial3: true,
+      ),
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          textScaler: TextScaler.linear(_settings.fontScale),
+        ),
+        child: child ?? const SizedBox.shrink(),
+      ),
+      home: AuthScreen(
+        firebaseReady: widget.firebaseReady,
+        onAuthenticated: (context, nickname) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => HomeScreen(nickname: nickname, settings: _settings)),
+          );
+        },
+      ),
     ),
   );
 }
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.nickname});
+  const HomeScreen({super.key, required this.nickname, required this.settings});
   final String nickname;
+  final AppSettings settings;
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -87,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
       JarvisScreen(nickname: widget.nickname),
       const NotesScreen(),
       const _PlaceholderPage(icon: Icons.access_time, title: 'Цифровой Блат', subtitle: 'Персональный цифровой циферблат.'),
-      const _PlaceholderPage(icon: Icons.person_outline, title: 'Профиль', subtitle: 'Настройки профиля и аватара.'),
+      ProfileScreen(nickname: widget.nickname, settings: widget.settings),
     ];
     return Scaffold(
       body: SafeArea(child: Column(children: [
@@ -108,7 +140,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _dashboard() {
-    final time = '${_two(_now.hour)}:${_two(_now.minute)}:${_two(_now.second)}';
     return ListView(padding: const EdgeInsets.fromLTRB(20, 22, 20, 28), children: [
       Row(children: [
         const _NexsusAvatar(size: 38),
@@ -124,10 +155,6 @@ class _HomeScreenState extends State<HomeScreen> {
         Text('$_greeting, ${widget.nickname}!', style: const TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
         const SizedBox(height: 7),
         Text('Рады снова тебя видеть.', style: TextStyle(color: Colors.white.withValues(alpha: .65))),
-        const SizedBox(height: 22),
-        Text(time, style: const TextStyle(fontSize: 42, fontWeight: FontWeight.w300, color: Color(0xFFB99AFF), letterSpacing: 2)),
-        const SizedBox(height: 4),
-        Text(_date, style: TextStyle(color: Colors.white.withValues(alpha: .65))),
       ])),
       const SizedBox(height: 16),
       _panel(child: Row(children: [
@@ -149,8 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           _action(Icons.mic, 'Джарвис', 'Голосовой помощник', 1),
           _action(Icons.note_alt_outlined, 'Заметки', 'Быстрые записи', 2),
-          _action(Icons.watch_later_outlined, 'Цифровой Блат', 'Твои часы', 3),
-          _action(Icons.person_outline, 'Профиль', 'Личные данные', 4),
+          _action(Icons.person_outline, 'Профиль', 'Личные данные и настройки', 4),
         ],
       ),
       const SizedBox(height: 18),
