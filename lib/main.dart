@@ -8,6 +8,7 @@ import 'auth_screen.dart';
 import 'jarvis_screen.dart';
 import 'notes_screen.dart';
 import 'app_settings.dart';
+import 'app_text.dart';
 import 'profile_screen.dart';
 import 'focus_screen.dart';
 import 'tasks_screen.dart';
@@ -112,15 +113,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String get _greeting {
     final hour = _now.hour;
-    if (hour >= 5 && hour < 12) return 'Доброе утро';
-    if (hour >= 12 && hour < 18) return 'Добрый день';
-    if (hour >= 18 && hour < 23) return 'Добрый вечер';
-    return 'Доброй ночи';
+    if (hour >= 5 && hour < 12) return AppText.tx('Доброе утро', 'Good morning');
+    if (hour >= 12 && hour < 18) return AppText.tx('Добрый день', 'Good afternoon');
+    if (hour >= 18 && hour < 23) return AppText.tx('Добрый вечер', 'Good evening');
+    return AppText.tx('Доброй ночи', 'Good night');
   }
 
   String get _date => '${_weekday(_now.weekday)}, ${_now.day} ${_month(_now.month)} ${_now.year}';
-  String _weekday(int day) => const ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'][day - 1];
-  String _month(int month) => const ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'][month - 1];
+  String _weekday(int day) => const [AppText.tx('Понедельник', 'Monday'),AppText.tx('Вторник', 'Tuesday'),AppText.tx('Среда', 'Wednesday'),AppText.tx('Четверг', 'Thursday'),AppText.tx('Пятница', 'Friday'),AppText.tx('Суббота', 'Saturday'),AppText.tx('Воскресенье', 'Sunday')][day - 1];
+  String _month(int month) => const [AppText.tx('января', 'Jan'),AppText.tx('февраля', 'Feb'),AppText.tx('марта', 'Mar'),AppText.tx('апреля', 'Apr'),AppText.tx('мая', 'May'),AppText.tx('июня', 'Jun'),AppText.tx('июля', 'Jul'),AppText.tx('августа', 'Aug'),AppText.tx('сентября', 'Sep'),AppText.tx('октября', 'Oct'),AppText.tx('ноября', 'Nov'),AppText.tx('декабря', 'Dec')][month - 1];
   String _two(int value) => value.toString().padLeft(2, '0');
 
   @override
@@ -141,12 +142,12 @@ class _HomeScreenState extends State<HomeScreen> {
             _visitedTabs.add(value);
             _selected = value;
           }),
-          destinations: const [
-            NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Главная'),
-            NavigationDestination(icon: Icon(Icons.graphic_eq), label: 'Джарвис'),
-            NavigationDestination(icon: Icon(Icons.sticky_note_2_outlined), label: 'Заметки'),
-            NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month), label: 'Календарь'),
-            NavigationDestination(icon: Icon(Icons.person_outline), label: 'Профиль'),
+          destinations: [
+            NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: AppText.tx('Главная', 'Home')),
+            NavigationDestination(icon: Icon(Icons.graphic_eq), label: AppText.tx('Джарвис', 'Jarvis')),
+            NavigationDestination(icon: Icon(Icons.sticky_note_2_outlined), label: AppText.tx('Заметки', 'Notes')),
+            NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month), label: AppText.tx('Календарь', 'Calendar')),
+            NavigationDestination(icon: Icon(Icons.person_outline), label: AppText.tx('Профиль', 'Profile')),
           ],
         ),
       ])),
@@ -168,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('$_greeting, ${widget.nickname}!', style: const TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
         const SizedBox(height: 7),
-        Text('Рады снова тебя видеть.', style: TextStyle(color: Colors.white.withValues(alpha: .65))),
+        Text(AppText.tx('Рады снова тебя видеть.', 'Good to see you again.'), style: TextStyle(color: Colors.white.withValues(alpha: .65))),
       ])),
       const SizedBox(height: 16),
       _panel(child: Row(children: [
@@ -177,23 +178,23 @@ class _HomeScreenState extends State<HomeScreen> {
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(widget.nickname, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
           SizedBox(height: 4),
-          Text('Пользователь NEXSUS', style: TextStyle(color: Colors.white60, fontSize: 12)),
+          Text(AppText.tx('Пользователь NEXSUS', 'NEXSUS user'), style: TextStyle(color: Colors.white60, fontSize: 12)),
         ])),
         const Icon(Icons.verified, color: Color(0xFFFFD27A)),
       ])),
       const SizedBox(height: 22),
-      const Text('БЫСТРЫЙ ДОСТУП', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.4)),
+      const Text(AppText.tx('БЫСТРЫЙ ДОСТУП', 'QUICK ACCESS'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.4)),
       const SizedBox(height: 12),
       GridView.count(
         crossAxisCount: 2, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
         crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.55,
         children: [
-          _action(Icons.mic, 'Джарвис', 'Голосовой помощник', 1),
-          _action(Icons.note_alt_outlined, 'Заметки', 'Быстрые записи', 2),
-          _action(Icons.person_outline, 'Профиль', 'Личные данные и настройки', 4),
-          _action(Icons.calendar_month, 'Календарь', 'Дни рождения и события', 3),
-          _action(Icons.center_focus_strong, 'Фокус', 'Таймер концентрации', 6),
-          _action(Icons.checklist_rounded, 'Мои задачи', 'План и сводка дня', 7),
+          _action(Icons.mic, AppText.tx('Джарвис', 'Jarvis'), AppText.tx('Голосовой помощник', 'Voice assistant'), 1),
+          _action(Icons.note_alt_outlined, AppText.tx('Заметки', 'Notes'), AppText.tx('Быстрые записи', 'Quick notes'), 2),
+          _action(Icons.person_outline, AppText.tx('Профиль', 'Profile'), AppText.tx('Личные данные и настройки', 'Personal details and settings'), 4),
+          _action(Icons.calendar_month, AppText.tx('Календарь', 'Calendar'), AppText.tx('Дни рождения и события', 'Birthdays and events'), 3),
+          _action(Icons.center_focus_strong, AppText.tx('Фокус', 'Focus'), AppText.tx('Таймер концентрации', 'Focus timer'), 6),
+          _action(Icons.checklist_rounded, AppText.tx('Мои задачи', 'My tasks'), AppText.tx('План и сводка дня', 'Daily plan and summary'), 7),
         ],
       ),
       const SizedBox(height: 18),
