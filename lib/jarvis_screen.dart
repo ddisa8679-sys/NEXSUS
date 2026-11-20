@@ -337,6 +337,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
       setState(() => _messages.add({'role': 'assistant', 'content': reply}));
       await _saveConversation();
       _scrollToBottom();
+      await _tts.setLanguage(AppText.language == 'en' ? 'en-US' : 'ru-RU');
       await _tts.speak(reply);
     } catch (e) {
       if (mounted) setState(() => _error = 'Ошибка локальной модели: $e');
