@@ -197,7 +197,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: kind,
-            decoration: const InputDecoration(labelText: AppText.tx('Категория', 'Category')),
+            decoration: InputDecoration(labelText: AppText.tx('Категория', 'Category')),
             items: ['День рождения', 'Праздник', 'Годовщина', 'Работа', 'Личное', AppText.tx('Важная дата', 'Important date')]
                 .map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
             onChanged: (v) { if (v != null) refresh(() => kind = v); },
@@ -279,7 +279,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         children: [
           const Text('NEXSUS / CALENDAR', style: TextStyle(color: Color(0xFFFFD27A), fontSize: 11, letterSpacing: 2, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          const Text(AppText.tx('Твои важные даты', 'Your important dates'), style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
+          Text(AppText.tx('Твои важные даты', 'Your important dates'), style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
           const SizedBox(height: 7),
           Text(_notificationStatus, style: TextStyle(fontSize: 11, color: _notificationsReady ? const Color(0xFF55D6A4) : Colors.orangeAccent)),
           const SizedBox(height: 18),
