@@ -125,7 +125,17 @@ class _AuthScreenState extends State<AuthScreen> {
                 child: Form(
                   key: _formKey,
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    const Icon(Icons.bolt, size: 58, color: violet),
+                    Container(
+                      width: 86, height: 86,
+                      margin: const EdgeInsets.symmetric(horizontal: 110),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF7650D8), Color(0xFF17132E)]),
+                        border: Border.all(color: const Color(0xFFFFD27A), width: 1.5),
+                        boxShadow: const [BoxShadow(color: Color(0x557650D8), blurRadius: 28, spreadRadius: 3)],
+                      ),
+                      child: const Center(child: Text('N', style: TextStyle(fontSize: 54, fontWeight: FontWeight.w900, color: Color(0xFFFFD27A), fontFamily: 'serif', height: 1))),
+                    ),
                     const SizedBox(height: 8),
                     const Text('NEXSUS', textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, letterSpacing: 6)),
