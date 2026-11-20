@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show FontFeature;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -11,7 +12,6 @@ import 'app_settings.dart';
 import 'app_text.dart';
 import 'nexsus_theme.dart';
 import 'profile_screen.dart';
-import 'focus_screen.dart';
 import 'tasks_screen.dart';
 import 'calendar_screen.dart';
 
@@ -88,7 +88,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Timer? _timer;
   DateTime _now = DateTime.now();
   int _selected = 0;
@@ -97,14 +97,34 @@ class _HomeScreenState extends State<HomeScreen> {
   static const String _intentionKey = 'nexsus_daily_intention_v1';
   static const String _intentionDateKey = 'nexsus_daily_intention_date_v1';
   bool _intentionSaved = false;
+  static const String _selectedTabKey = 'nexsus_selected_tab_v1';
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _restoreHomeState();
     _loadDailyIntention();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() => _now = DateTime.now());
     });
+  }
+
+  Future<void> _restoreHomeState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedTab = (prefs.getInt(_selectedTabKey) ?? 0).clamp(0, 4);
+    if (!mounted) return;
+    setState(() { _selected = savedTab; _visitedTabs.add(savedTab); });
+  }
+
+  Future<void> _saveSelectedTab(int value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_selectedTabKey, value);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted) setState(() => _now = DateTime.now());
   }
 
   Future<void> _loadDailyIntention() async {
@@ -132,6 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _intentionController.dispose();
     _timer?.cancel();
     super.dispose();
@@ -159,10 +180,10 @@ class _HomeScreenState extends State<HomeScreen> {
         Expanded(child: IndexedStack(index: _selected, children: pages)),
         NavigationBar(
           selectedIndex: _selected,
-          onDestinationSelected: (value) => setState(() {
-            _visitedTabs.add(value);
-            _selected = value;
-          }),
+          onDestinationSelected: (value) {
+            setState(() { _visitedTabs.add(value); _selected = value; });
+            _saveSelectedTab(value);
+          },
           destinations: [
             NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: AppText.tx('Главная', 'Home')),
             NavigationDestination(icon: Icon(Icons.graphic_eq), label: AppText.tx('Джарвис', 'Jarvis')),
@@ -199,6 +220,8 @@ class _HomeScreenState extends State<HomeScreen> {
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(widget.nickname, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
           SizedBox(height: 4),
+          Text('${_now.hour.toString().padLeft(2, '0')}:${_now.minute.toString().padLeft(2, '0')}', style: TextStyle(color: widget.settings.accent, fontSize: 17, fontWeight: FontWeight.w700)),
+          SizedBox(height: 2),
           Text(AppText.tx('Пользователь NEXSUS', 'NEXSUS user'), style: TextStyle(color: Colors.white60, fontSize: 12)),
         ])),
         Icon(Icons.verified, color: widget.settings.accent),
@@ -242,9 +265,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           _action(Icons.mic, AppText.tx('Джарвис', 'Jarvis'), AppText.tx('Голосовой помощник', 'Voice assistant'), 1),
           _action(Icons.note_alt_outlined, AppText.tx('Заметки', 'Notes'), AppText.tx('Быстрые записи', 'Quick notes'), 2),
-          _action(Icons.person_outline, AppText.tx('Профиль', 'Profile'), AppText.tx('Личные данные и настройки', 'Personal details and settings'), 4),
           _action(Icons.calendar_month, AppText.tx('Календарь', 'Calendar'), AppText.tx('Дни рождения и события', 'Birthdays and events'), 3),
-          _action(Icons.center_focus_strong, AppText.tx('Фокус', 'Focus'), AppText.tx('Таймер концентрации', 'Focus timer'), 6),
           _action(Icons.checklist_rounded, AppText.tx('Мои задачи', 'My tasks'), AppText.tx('План и сводка дня', 'Daily plan and summary'), 7),
         ],
       ),
@@ -264,7 +285,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _action(IconData icon, String title, String subtitle, int page) => InkWell(
     borderRadius: BorderRadius.circular(18),
-    onTap: () { if (page == 6) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const FocusScreen())); } else if (page == 7) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TasksScreen())); } else { setState(() { _visitedTabs.add(page); _selected = page; }); } },
+    onTap: () { if (page == 7) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TasksScreen())); } else { setState(() { _visitedTabs.add(page); _selected = page; }); _saveSelectedTab(page); } },
     child: Ink(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
