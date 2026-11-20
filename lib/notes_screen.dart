@@ -167,7 +167,7 @@ class _NotesScreenState extends State<NotesScreen> {
                     shape: BoxShape.circle,
                     color: _listening ? const Color(0xFF8C3345) : const Color(0xFF292B31),
                     border: Border.all(color: const Color(0xFFB7A2F6), width: 2),
-                    boxShadow: const [BoxShadow(color: Color(0x55FFB84D), blurRadius: 18)],
+                    
                   ),
                   child: Icon(_listening ? Icons.stop_rounded : Icons.mic_rounded, size: 38, color: const Color(0xFFB7A2F6)),
                 ),
