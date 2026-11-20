@@ -295,7 +295,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           const SizedBox(height: 18),
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: const Color(0xFF1A1C20), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0x557650D8))),
+            decoration: BoxDecoration(color: const Color(0xFF1A1C20), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFF303238))),
             child: Column(children: [
               Row(children: [
                 IconButton(onPressed: () => setState(() => _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1)), icon: const Icon(Icons.chevron_left)),
@@ -351,7 +351,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               return Container(
                 margin: const EdgeInsets.only(bottom: 9),
                 padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(color: const Color(0xFF1A1C20), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0x332D2C4A))),
+                decoration: BoxDecoration(color: const Color(0xFF1A1C20), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF303238))),
                 child: Row(children: [
                   Container(width: 48, height: 52, decoration: BoxDecoration(color: const Color(0xFF292B31), borderRadius: BorderRadius.circular(12)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                     Text(date.day.toString().padLeft(2, '0'), style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
