@@ -98,12 +98,22 @@ class _CalendarScreenState extends State<CalendarScreen> {
   bool _sameDate(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
+  String _kindLabel(String value) => switch (value) {
+    'День рождения' => AppText.tx('День рождения', 'Birthday'),
+    'Праздник' => AppText.tx('Праздник', 'Holiday'),
+    'Годовщина' => AppText.tx('Годовщина', 'Anniversary'),
+    'Работа' => AppText.tx('Работа', 'Work'),
+    'Личное' => AppText.tx('Личное', 'Personal'),
+    'Важная дата' => AppText.tx('Важная дата', 'Important date'),
+    _ => value,
+  };
+
   Future<void> _scheduleEvent(Map<String, dynamic> event) async {
     if (!_notificationsReady) return;
     final eventId = event['id'] as String;
     final date = _nextDate(event);
     final title = event['title'] as String;
-    final kind = event['kind'] as String? ?? AppText.tx('Важная дата', 'Important date');
+    final kind = _kindLabel(event['kind'] as String? ?? 'Важная дата');
     final yearly = event['yearly'] == true;
     final dayBefore = DateTime(date.year, date.month, date.day).subtract(const Duration(days: 1));
     final eventDay = DateTime(date.year, date.month, date.day);
@@ -185,7 +195,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final title = TextEditingController();
     final details = TextEditingController();
     DateTime date = DateTime.now();
-    String kind = AppText.tx('Важная дата', 'Important date');
+    String kind = AppText.language == 'en' ? 'Important date' : 'Важная дата';
     bool yearly = false;
     final saved = await showDialog<bool>(
       context: context,
@@ -198,7 +208,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           DropdownButtonFormField<String>(
             value: kind,
             decoration: InputDecoration(labelText: AppText.tx('Категория', 'Category')),
-            items: ['День рождения', 'Праздник', 'Годовщина', 'Работа', 'Личное', AppText.tx('Важная дата', 'Important date')]
+            items: AppText.language == 'en' ? ['Birthday', 'Holiday', 'Anniversary', 'Work', 'Personal', 'Important date'] : ['День рождения', 'Праздник', 'Годовщина', 'Работа', 'Личное', 'Важная дата']
                 .map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
             onChanged: (v) { if (v != null) refresh(() => kind = v); },
           ),
@@ -294,7 +304,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ]),
               const SizedBox(height: 8),
               Row(children: [
-                'ПН','ВТ','СР','ЧТ','ПТ','СБ','ВС'
+                ...(AppText.language == 'en' ? ['MO','TU','WE','TH','FR','SA','SU'] : ['ПН','ВТ','СР','ЧТ','ПТ','СБ','ВС'])
               ].map((d) => Expanded(child: Center(child: Text(d, style: TextStyle(fontSize: 10, color: Colors.white54, fontWeight: FontWeight.bold))))).toList(),
               ),
               const SizedBox(height: 8),
@@ -351,7 +361,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(event['title'] as String? ?? 'Событие', style: const TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 3),
-                    Text('${event['kind']} · ${_dateLabel(date)}${yearly ? ' · ежегодно' : ''}', style: const TextStyle(fontSize: 10, color: Colors.white60)),
+                    Text('${_kindLabel(event['kind'] as String? ?? 'Важная дата')} · ${_dateLabel(date)}${yearly ? ' · ${AppText.tx('ежегодно', 'yearly')}' : ''}', style: const TextStyle(fontSize: 10, color: Colors.white60)),
                     if (detail.isNotEmpty) Text(detail, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, color: Colors.white54)),
                   ])),
                   IconButton(onPressed: () => _deleteEvent(event), tooltip: AppText.tx('Удалить событие', 'Delete event'), icon: const Icon(Icons.delete_outline, color: Colors.white38)),
