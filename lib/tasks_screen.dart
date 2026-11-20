@@ -98,9 +98,9 @@ class _TasksScreenState extends State<TasksScreen> {
         TextField(controller: controller, autofocus: true, textCapitalization: TextCapitalization.sentences, decoration: InputDecoration(hintText: AppText.tx('Что нужно сделать?', 'What needs to be done?'))),
         const SizedBox(height: 12),
         DropdownButtonFormField<String>(value: priority, decoration: InputDecoration(labelText: AppText.tx('Приоритет', 'Priority')), items: [
-          DropdownMenuItem(value: 'Низкий', child: Text('Низкий')),
-          DropdownMenuItem(value: 'Обычный', child: Text('Обычный')),
-          DropdownMenuItem(value: 'Высокий', child: Text('Высокий')),
+          DropdownMenuItem(value: 'Низкий', child: Text(AppText.tx('Низкий', 'Low'))),
+          DropdownMenuItem(value: 'Обычный', child: Text(AppText.tx('Обычный', 'Normal'))),
+          DropdownMenuItem(value: 'Высокий', child: Text(AppText.tx('Высокий', 'High'))),
         ], onChanged: (v) { if (v != null) refresh(() => priority = v); }),
         const SizedBox(height: 8),
         OutlinedButton.icon(onPressed: () async {
@@ -185,7 +185,8 @@ class _TasksScreenState extends State<TasksScreen> {
         if (_tasks.isEmpty) Padding(padding: EdgeInsets.symmetric(vertical: 35), child: Column(children: [Icon(Icons.checklist_rounded, size: 48, color: Color(0xFFB99AFF)), SizedBox(height: 12), Text(AppText.tx('Пока задач нет', 'No tasks yet'), style: TextStyle(fontWeight: FontWeight.bold)), SizedBox(height: 5), Text(AppText.tx('Добавь первую задачу — сводка начнёт собираться автоматически.', 'Add your first task to build an automatic daily summary.'), textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 12))]))
         else ...sorted.map((i) {
           final task = _tasks[i], due = _dateOf(task), done = task['done'] == true, late = _overdue(task);
-          final priority = task['priority'] as String? ?? 'Обычный';
+          final priorityValue = task['priority'] as String? ?? 'Обычный';
+          final priority = priorityValue == 'Низкий' ? AppText.tx('Низкий', 'Low') : priorityValue == 'Высокий' ? AppText.tx('Высокий', 'High') : AppText.tx('Обычный', 'Normal');
           final dueLabel = due == null ? '' : AppText.tx('Срок: ', 'Due: ') + due.day.toString().padLeft(2,'0') + '.' + due.month.toString().padLeft(2,'0') + '.' + due.year.toString() + ' · ' + TimeOfDay.fromDateTime(due).format(context);
           return Container(margin: const EdgeInsets.only(bottom: 9), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9), decoration: BoxDecoration(color: const Color(0xFF15182C), borderRadius: BorderRadius.circular(16), border: Border.all(color: late ? const Color(0x88E36C75) : Colors.white10)), child: Row(children: [
             Checkbox(value: done, onChanged: (v) => _toggle(i, v ?? false), activeColor: const Color(0xFF7652B8)),
