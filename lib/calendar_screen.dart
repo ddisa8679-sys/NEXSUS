@@ -193,7 +193,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         title: Text(AppText.tx('Новое событие', 'New event')),
         content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
           TextField(controller: title, autofocus: true, decoration: InputDecoration(labelText: AppText.tx('Название события', 'Event title'))),
-          TextField(controller: details, decoration: const InputDecoration(labelText: AppText.tx('Заметка (необязательно)', 'Note (optional)'))),
+          TextField(controller: details, decoration: InputDecoration(labelText: AppText.tx('Заметка (необязательно)', 'Note (optional)'))),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: kind,
@@ -225,7 +225,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ])),
         actions: [
           TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(AppText.tx('Отмена', 'Cancel'))),
-          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text(AppText.tx('Сохранить', 'Save'))),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: Text(AppText.tx('Сохранить', 'Save'))),
         ],
       )),
     );
