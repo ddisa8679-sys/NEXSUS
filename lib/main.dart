@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'auth_screen.dart';
 import 'jarvis_screen.dart';
 import 'notes_screen.dart';
@@ -72,7 +73,7 @@ class _NexsusAppState extends State<NexsusApp> {
         firebaseReady: widget.firebaseReady,
         onAuthenticated: (context, nickname) {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => HomeScreen(nickname: nickname, settings: _settings)),
+            MaterialPageRoute(builder: (_) => HomeScreen(nickname: nickname, settings: _settings, firebaseReady: widget.firebaseReady)),
           );
         },
       ),
@@ -81,9 +82,10 @@ class _NexsusAppState extends State<NexsusApp> {
 }
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.nickname, required this.settings});
+  const HomeScreen({super.key, required this.nickname, required this.settings, required this.firebaseReady});
   final String nickname;
   final AppSettings settings;
+  final bool firebaseReady;
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -128,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _visitedTabs.contains(1) ? JarvisScreen(nickname: widget.nickname) : const SizedBox.shrink(),
       _visitedTabs.contains(2) ? const NotesScreen() : const SizedBox.shrink(),
       _visitedTabs.contains(3) ? const CalendarScreen() : const SizedBox.shrink(),
-      _visitedTabs.contains(4) ? ProfileScreen(nickname: widget.nickname, settings: widget.settings) : const SizedBox.shrink(),
+      _visitedTabs.contains(4) ? ProfileScreen(nickname: widget.nickname, settings: widget.settings, onSignOut: () async { await FirebaseAuth.instance.signOut(); if (!mounted) return; Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => AuthScreen(firebaseReady: widget.firebaseReady, onAuthenticated: (ctx, name) { Navigator.of(ctx).pushReplacement(MaterialPageRoute(builder: (_) => HomeScreen(nickname: name, settings: widget.settings, firebaseReady: widget.firebaseReady))); })), (route) => false); }) : const SizedBox.shrink(),
     ];
     return Scaffold(
       body: SafeArea(child: Column(children: [
