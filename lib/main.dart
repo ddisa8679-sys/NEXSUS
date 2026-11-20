@@ -9,6 +9,7 @@ import 'jarvis_screen.dart';
 import 'notes_screen.dart';
 import 'app_settings.dart';
 import 'app_text.dart';
+import 'nexsus_theme.dart';
 import 'profile_screen.dart';
 import 'focus_screen.dart';
 import 'tasks_screen.dart';
@@ -57,12 +58,8 @@ class _NexsusAppState extends State<NexsusApp> {
       locale: Locale(_settings.language),
       supportedLocales: const [Locale('ru'), Locale('en')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      theme: ThemeData(
-        brightness: Brightness.dark,
+      theme: NexsusTheme.build(accentColor: _settings.accent, fontFamily: _settings.fontFamily).copyWith(
         scaffoldBackgroundColor: _settings.scaffoldColor,
-        colorScheme: ColorScheme.fromSeed(seedColor: _settings.accent, brightness: Brightness.dark),
-        fontFamily: _settings.fontFamily,
-        useMaterial3: true,
       ),
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(
@@ -185,9 +182,9 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(width: 10),
         const Text('NEXSUS', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: 3)),
         const Spacer(),
-        const Icon(Icons.circle, color: Color(0xFF36D9A0), size: 9),
+        const Icon(Icons.circle, color: Color(0xFF8BC9A5), size: 8),
         const SizedBox(width: 6),
-        Text('ЛИЧНОЕ ПРОСТРАНСТВО', style: TextStyle(fontSize: 9, color: Colors.white.withValues(alpha: .55), letterSpacing: 1)),
+        Text(AppText.tx('ЛИЧНОЕ ПРОСТРАНСТВО', 'PERSONAL SPACE'), style: TextStyle(fontSize: 9, color: Colors.white.withValues(alpha: .55), letterSpacing: 1)),
       ]),
       const SizedBox(height: 28),
       _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -233,7 +230,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onPressed: _saveDailyIntention,
           icon: const Icon(Icons.check_rounded, size: 18),
           label: Text(AppText.tx('Сохранить фокус дня', 'Save today’s focus')),
-          style: FilledButton.styleFrom(backgroundColor: const Color(0xFF7652B8)),
+          style: FilledButton.styleFrom(backgroundColor: widget.settings.accent, foregroundColor: const Color(0xFF17131F)),
         )),
       ])),
       const SizedBox(height: 22),
@@ -271,12 +268,12 @@ class _HomeScreenState extends State<HomeScreen> {
     child: Ink(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-        gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF21164A), Color(0xFF101A38)]),
-        border: Border.all(color: const Color(0xFF7650D8).withValues(alpha: .45)),
+        color: const Color(0xFF1A1C20),
+        border: Border.all(color: const Color(0xFF303238)),
       ),
       padding: const EdgeInsets.all(15),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-        Icon(icon, color: const Color(0xFFB99AFF), size: 25),
+        Icon(icon, color: widget.settings.accent, size: 23),
         const SizedBox(height: 8),
         Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 3),
@@ -286,11 +283,11 @@ class _HomeScreenState extends State<HomeScreen> {
   );
 
   Widget _panel({required Widget child}) => Container(
-    padding: const EdgeInsets.all(19),
+    padding: const EdgeInsets.all(18),
     decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(22),
-      gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF171832), Color(0xFF0D1025)]),
-      border: Border.all(color: const Color(0xFF6745BD).withValues(alpha: .42)),
+      borderRadius: BorderRadius.circular(18),
+      color: const Color(0xFF1A1C20),
+      border: Border.all(color: const Color(0xFF303238)),
     ),
     child: child,
   );
@@ -301,60 +298,21 @@ class _NexsusAvatar extends StatelessWidget {
   final double size;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
+  Widget build(BuildContext context) => Container(
     width: size,
     height: size,
-    child: DecoratedBox(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: const RadialGradient(
-          colors: [Color(0xFF493019), Color(0xFF17111A), Color(0xFF080A13)],
-          stops: [0, .58, 1],
-        ),
-        border: Border.all(color: const Color(0xFFFFD27A), width: size * .035),
-        boxShadow: const [
-          BoxShadow(color: Color(0x66FFB84D), blurRadius: 13, spreadRadius: 1),
-        ],
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Transform.rotate(
-            angle: -.42,
-            child: Container(
-              width: size * .78,
-              height: size * .30,
-              decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xFFFFD27A), width: size * .025),
-                borderRadius: BorderRadius.circular(size),
-              ),
-            ),
-          ),
-          Text(
-            'N',
-            style: TextStyle(
-              fontFamily: 'serif',
-              fontSize: size * .68,
-              height: 1,
-              fontWeight: FontWeight.w900,
-              color: const Color(0xFFFFD27A),
-              shadows: const [Shadow(color: Color(0xFFFFA629), blurRadius: 12)],
-            ),
-          ),
-          Positioned(
-            top: size * .10,
-            right: size * .18,
-            child: Container(
-              width: size * .07,
-              height: size * .07,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFFF0C2),
-                shape: BoxShape.circle,
-                boxShadow: [BoxShadow(color: Color(0xFFFFC45C), blurRadius: 7)],
-              ),
-            ),
-          ),
-        ],
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      color: const Color(0xFF292B31),
+      shape: BoxShape.circle,
+      border: Border.all(color: const Color(0xFF454850)),
+    ),
+    child: Text(
+      'N',
+      style: TextStyle(
+        fontSize: size * .48,
+        fontWeight: FontWeight.w700,
+        color: Theme.of(context).colorScheme.primary,
       ),
     ),
   );
