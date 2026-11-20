@@ -36,15 +36,15 @@ class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
     _timer?.cancel();
     _endsAt = DateTime.now().add(Duration(seconds: _remaining));
     setState(() { _running = true; _finished = false; });
-    _timer = Timer.periodic(const Duration(seconds: 1), _refreshRemaining);
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _refreshRemaining());
   }
 
-  void _refreshRemaining(Timer timer) {
-    if (!mounted) { timer.cancel(); return; }
+  void _refreshRemaining() {
+    if (!mounted) { _timer?.cancel(); return; }
     final end = _endsAt;
     if (end == null) return;
     final seconds = end.difference(DateTime.now()).inSeconds;
-    if (seconds <= 0) { timer.cancel(); _complete(); }
+    if (seconds <= 0) { _timer?.cancel(); _complete(); }
     else { setState(() => _remaining = seconds); }
   }
 
@@ -58,7 +58,7 @@ class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && _running) _refreshRemaining(_timer ?? Timer(const Duration(seconds: 0), (_) {}));
+    if (state == AppLifecycleState.resumed && _running) _refreshRemaining();
   }
   Future<void> _complete() async {
     final p = await SharedPreferences.getInstance();
