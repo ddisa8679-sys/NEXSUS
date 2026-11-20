@@ -287,7 +287,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       body: SafeArea(child: !_loaded ? const Center(child: CircularProgressIndicator()) : ListView(
         padding: const EdgeInsets.fromLTRB(20, 22, 20, 100),
         children: [
-          const Text('NEXSUS / CALENDAR', style: TextStyle(color: Color(0xFFFFD27A), fontSize: 11, letterSpacing: 2, fontWeight: FontWeight.bold)),
+          const Text('NEXSUS / CALENDAR', style: TextStyle(color: Color(0xFFB7A2F6), fontSize: 11, letterSpacing: 2, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(AppText.tx('Твои важные даты', 'Your important dates'), style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
           const SizedBox(height: 7),
@@ -295,7 +295,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           const SizedBox(height: 18),
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: const Color(0xFF15182C), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0x557650D8))),
+            decoration: BoxDecoration(color: const Color(0xFF1A1C20), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFF303238))),
             child: Column(children: [
               Row(children: [
                 IconButton(onPressed: () => setState(() => _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1)), icon: const Icon(Icons.chevron_left)),
@@ -319,13 +319,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     height: 38,
                     margin: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
-                      color: isToday ? const Color(0xFF7650D8) : Colors.transparent,
+                      color: isToday ? const Color(0xFFB7A2F6) : Colors.transparent,
                       borderRadius: BorderRadius.circular(10),
-                      border: hasEvent && !isToday ? Border.all(color: const Color(0xFFFFD27A)) : null,
+                      border: hasEvent && !isToday ? Border.all(color: const Color(0xFFB7A2F6)) : null,
                     ),
                     child: Stack(alignment: Alignment.center, children: [
                       Text('$day', style: TextStyle(fontWeight: isToday || hasEvent ? FontWeight.bold : FontWeight.normal)),
-                      if (hasEvent) const Positioned(bottom: 3, child: Icon(Icons.circle, size: 4, color: Color(0xFFFFD27A))),
+                      if (hasEvent) const Positioned(bottom: 3, child: Icon(Icons.circle, size: 4, color: Color(0xFFB7A2F6))),
                     ]),
                   ));
                 })),
@@ -333,11 +333,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ]),
           ),
           const SizedBox(height: 22),
-          Row(children: [Expanded(child: Text(AppText.tx('БЛИЖАЙШИЕ СОБЫТИЯ', 'UPCOMING EVENTS'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2))), Text('${upcoming.length}', style: const TextStyle(color: Color(0xFFFFD27A)))]),
+          Row(children: [Expanded(child: Text(AppText.tx('БЛИЖАЙШИЕ СОБЫТИЯ', 'UPCOMING EVENTS'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2))), Text('${upcoming.length}', style: const TextStyle(color: Color(0xFFB7A2F6)))]),
           const SizedBox(height: 10),
           if (upcoming.isEmpty)
             Padding(padding: const EdgeInsets.symmetric(vertical: 28), child: Column(children: [
-              Icon(Icons.event_available, size: 46, color: Color(0xFFB99AFF)),
+              Icon(Icons.event_available, size: 46, color: Color(0xFFB7A2F6)),
               SizedBox(height: 10),
               Text(AppText.tx('Пока нет важных дат', 'No important dates yet'), style: TextStyle(fontWeight: FontWeight.bold)),
               SizedBox(height: 5),
@@ -351,11 +351,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
               return Container(
                 margin: const EdgeInsets.only(bottom: 9),
                 padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(color: const Color(0xFF15182C), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0x332D2C4A))),
+                decoration: BoxDecoration(color: const Color(0xFF1A1C20), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF303238))),
                 child: Row(children: [
-                  Container(width: 48, height: 52, decoration: BoxDecoration(color: const Color(0xFF30234F), borderRadius: BorderRadius.circular(12)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Container(width: 48, height: 52, decoration: BoxDecoration(color: const Color(0xFF292B31), borderRadius: BorderRadius.circular(12)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                     Text(date.day.toString().padLeft(2, '0'), style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
-                    Text(monthNames[date.month - 1].substring(0, 3), style: const TextStyle(fontSize: 10, color: Color(0xFFFFD27A))),
+                    Text(monthNames[date.month - 1].substring(0, 3), style: const TextStyle(fontSize: 10, color: Color(0xFFB7A2F6))),
                   ])),
                   const SizedBox(width: 12),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

@@ -23,7 +23,7 @@ class ProfileScreen extends StatelessWidget {
       builder: (context, _) => ListView(
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 30),
         children: [
-          Text(AppText.tx('ЛИЧНЫЙ КАБИНЕТ', 'PERSONAL SPACE'), style: TextStyle(fontSize: 11, letterSpacing: 2, color: Color(0xFFFFD27A), fontWeight: FontWeight.bold)),
+          Text(AppText.tx('ЛИЧНЫЙ КАБИНЕТ', 'PERSONAL SPACE'), style: TextStyle(fontSize: 11, letterSpacing: 2, color: Color(0xFFB7A2F6), fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(AppText.tx('Профиль и настройки', 'Profile & settings'), style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
           const SizedBox(height: 20),
@@ -33,9 +33,8 @@ class ProfileScreen extends StatelessWidget {
                 width: 64, height: 64,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [settings.accent, const Color(0xFF211A43)]),
-                  border: Border.all(color: const Color(0xFFFFD27A), width: 1.5),
-                  boxShadow: [BoxShadow(color: settings.accent.withValues(alpha: .28), blurRadius: 18)],
+                  color: const Color(0xFF292B31),
+                  border: Border.all(color: const Color(0xFF454850)),
                 ),
                 alignment: Alignment.center,
                 child: Text(nickname.trim().isEmpty ? 'N' : nickname.trim().substring(0, 1).toUpperCase(), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white)),
@@ -149,7 +148,7 @@ class ProfileScreen extends StatelessWidget {
   Widget _section({required Widget child}) => Container(
     padding: const EdgeInsets.all(17),
     decoration: BoxDecoration(
-      color: const Color(0xFF15182C),
+      color: const Color(0xFF1A1C20),
       borderRadius: BorderRadius.circular(20),
       border: Border.all(color: const Color(0x334D4A70)),
     ),
@@ -177,7 +176,7 @@ class ProfileScreen extends StatelessWidget {
   Color settingsColor(BuildContext context) => Theme.of(context).colorScheme.primary;
 
   Widget _accountRow(IconData icon, String title, String value) => Row(children: [
-    Icon(icon, color: const Color(0xFFB99AFF), size: 21),
+    Icon(icon, color: const Color(0xFFB7A2F6), size: 21),
     const SizedBox(width: 12),
     Expanded(child: Text(title, style: const TextStyle(fontSize: 13))),
     Flexible(child: Text(value, textAlign: TextAlign.end, style: const TextStyle(fontSize: 11, color: Colors.white54))),

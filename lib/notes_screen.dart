@@ -140,7 +140,7 @@ class _NotesScreenState extends State<NotesScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
       children: [
-        Text(AppText.tx('ЗАМЕТКИ', 'NOTES'), style: TextStyle(fontSize: 12, letterSpacing: 2, color: Color(0xFFFFD27A), fontWeight: FontWeight.bold)),
+        Text(AppText.tx('ЗАМЕТКИ', 'NOTES'), style: TextStyle(fontSize: 12, letterSpacing: 2, color: Color(0xFFB7A2F6), fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         Text(AppText.tx('Говори — NEXSUS запишет', 'Speak — NEXSUS will write it down'), style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
@@ -150,8 +150,8 @@ class _NotesScreenState extends State<NotesScreen> {
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(22),
-            gradient: const LinearGradient(colors: [Color(0xFF211B35), Color(0xFF101426)]),
-            border: Border.all(color: const Color(0x66FFD27A)),
+            color: const Color(0xFF1A1C20),
+            border: Border.all(color: const Color(0xFF303238)),
           ),
           child: Column(
             children: [
@@ -165,11 +165,11 @@ class _NotesScreenState extends State<NotesScreen> {
                   height: 84,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: _listening ? const Color(0xFF8C3345) : const Color(0xFF392B20),
-                    border: Border.all(color: const Color(0xFFFFD27A), width: 2),
-                    boxShadow: const [BoxShadow(color: Color(0x55FFB84D), blurRadius: 18)],
+                    color: _listening ? const Color(0xFF8C3345) : const Color(0xFF292B31),
+                    border: Border.all(color: const Color(0xFFB7A2F6), width: 2),
+                    
                   ),
-                  child: Icon(_listening ? Icons.stop_rounded : Icons.mic_rounded, size: 38, color: const Color(0xFFFFD27A)),
+                  child: Icon(_listening ? Icons.stop_rounded : Icons.mic_rounded, size: 38, color: const Color(0xFFB7A2F6)),
                 ),
               ),
               const SizedBox(height: 12),
@@ -182,7 +182,7 @@ class _NotesScreenState extends State<NotesScreen> {
                 decoration: InputDecoration(
                   hintText: AppText.tx('Или напиши заметку здесь…', 'Or type a note here…'),
                   filled: true,
-                  fillColor: const Color(0xFF090D1B),
+                  fillColor: const Color(0xFF22252A),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
                 ),
               ),
@@ -193,7 +193,7 @@ class _NotesScreenState extends State<NotesScreen> {
                   onPressed: () => _addNote(),
                   icon: const Icon(Icons.save_outlined),
                   label: Text(AppText.tx('Сохранить заметку', 'Save note')),
-                  style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8C642B), foregroundColor: Colors.white),
+                  style: FilledButton.styleFrom(backgroundColor: const Color(0xFFB7A2F6), foregroundColor: const Color(0xFF17131F)),
                 ),
               ),
             ],
@@ -203,7 +203,7 @@ class _NotesScreenState extends State<NotesScreen> {
         Row(
           children: [
             Expanded(child: Text(AppText.tx('МОИ ЗАМЕТКИ', 'MY NOTES'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.4))),
-            Text('${_notes.length}', style: const TextStyle(color: Color(0xFFFFD27A))),
+            Text('${_notes.length}', style: const TextStyle(color: Color(0xFFB7A2F6))),
           ],
         ),
         const SizedBox(height: 12),
@@ -217,14 +217,14 @@ class _NotesScreenState extends State<NotesScreen> {
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
-              color: const Color(0xFF15182C),
+              color: const Color(0xFF1A1C20),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0x332D2C4A)),
+              border: Border.all(color: const Color(0xFF303238)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.notes_rounded, color: Color(0xFFFFD27A), size: 20),
+                const Icon(Icons.notes_rounded, color: Color(0xFFB7A2F6), size: 20),
                 const SizedBox(width: 12),
                 Expanded(child: Text(_notes[index])),
                 IconButton(

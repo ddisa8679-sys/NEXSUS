@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'auth_service.dart';
 import 'app_text.dart';
+import 'nexsus_theme.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key, required this.firebaseReady, required this.onAuthenticated});
@@ -103,13 +104,10 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const violet = Color(0xFFB99AFF);
+    final violet = Theme.of(context).colorScheme.primary;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-            colors: [Color(0xFF09091D), Color(0xFF11143A), Color(0xFF080817)]),
-        ),
+        decoration: const BoxDecoration(color: NexsusTheme.background),
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -124,11 +122,10 @@ class _AuthScreenState extends State<AuthScreen> {
                       margin: const EdgeInsets.symmetric(horizontal: 110),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF7650D8), Color(0xFF17132E)]),
-                        border: Border.all(color: const Color(0xFFFFD27A), width: 1.5),
-                        boxShadow: const [BoxShadow(color: Color(0x557650D8), blurRadius: 28, spreadRadius: 3)],
+                        color: const Color(0xFF22252A),
+                        border: Border.all(color: const Color(0xFF454850), width: 1),
                       ),
-                      child: const Center(child: Text('N', style: TextStyle(fontSize: 54, fontWeight: FontWeight.w900, color: Color(0xFFFFD27A), fontFamily: 'serif', height: 1))),
+                      child: const Center(child: Text('N', style: TextStyle(fontSize: 54, fontWeight: FontWeight.w900, color: Color(0xFFB7A2F6), fontFamily: 'serif', height: 1))),
                     ),
                     const SizedBox(height: 8),
                     const Text('NEXSUS', textAlign: TextAlign.center,
@@ -140,10 +137,9 @@ class _AuthScreenState extends State<AuthScreen> {
                     Container(
                       padding: const EdgeInsets.all(22),
                       decoration: BoxDecoration(
-                        color: const Color(0xDD15162F),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: violet.withValues(alpha: .45)),
-                        boxShadow: [BoxShadow(color: violet.withValues(alpha: .10), blurRadius: 30)],
+                        color: NexsusTheme.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFF303238)),
                       ),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                         Text(_register ? AppText.tx('Создать аккаунт', 'Create account') : AppText.tx('С возвращением', 'Welcome back'),
@@ -183,7 +179,8 @@ class _AuthScreenState extends State<AuthScreen> {
                         FilledButton(
                           onPressed: _busy ? null : _submit,
                           style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF7549E8),
+                            backgroundColor: violet,
+                            foregroundColor: const Color(0xFF17131F),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                           ),
@@ -220,17 +217,24 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  InputDecoration _decoration(String label, IconData icon) => InputDecoration(
-    labelText: label,
-    prefixIcon: Icon(icon, color: const Color(0xFFB99AFF)),
-    filled: true,
-    fillColor: const Color(0xFF0B0D20),
-    border: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: BorderSide.none),
-    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(13),
-      borderSide: const BorderSide(color: Color(0x334F4C82))),
-    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(13),
-      borderSide: const BorderSide(color: Color(0xFF9B78FF))),
-  );
+  InputDecoration _decoration(String label, IconData icon) {
+    final violet = Theme.of(context).colorScheme.primary;
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: violet),
+      filled: true,
+      fillColor: NexsusTheme.surfaceRaised,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: BorderSide.none),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(13),
+        borderSide: const BorderSide(color: Color(0xFF393C43)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(13),
+        borderSide: BorderSide(color: violet),
+      ),
+    );
+  }
 
   void _forgot() {
     showDialog<void>(context: context, builder: (context) => AlertDialog(

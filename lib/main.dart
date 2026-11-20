@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show FontFeature;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -9,8 +10,8 @@ import 'jarvis_screen.dart';
 import 'notes_screen.dart';
 import 'app_settings.dart';
 import 'app_text.dart';
+import 'nexsus_theme.dart';
 import 'profile_screen.dart';
-import 'focus_screen.dart';
 import 'tasks_screen.dart';
 import 'calendar_screen.dart';
 
@@ -57,12 +58,8 @@ class _NexsusAppState extends State<NexsusApp> {
       locale: Locale(_settings.language),
       supportedLocales: const [Locale('ru'), Locale('en')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      theme: ThemeData(
-        brightness: Brightness.dark,
+      theme: NexsusTheme.build(accentColor: _settings.accent, fontFamily: _settings.fontFamily).copyWith(
         scaffoldBackgroundColor: _settings.scaffoldColor,
-        colorScheme: ColorScheme.fromSeed(seedColor: _settings.accent, brightness: Brightness.dark),
-        fontFamily: _settings.fontFamily,
-        useMaterial3: true,
       ),
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(
@@ -70,14 +67,21 @@ class _NexsusAppState extends State<NexsusApp> {
         ),
         child: child ?? const SizedBox.shrink(),
       ),
-      home: AuthScreen(
-        firebaseReady: widget.firebaseReady,
-        onAuthenticated: (context, nickname) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => HomeScreen(nickname: nickname, settings: _settings, firebaseReady: widget.firebaseReady)),
-          );
-        },
-      ),
+      home: widget.firebaseReady && FirebaseAuth.instance.currentUser != null
+          ? HomeScreen(
+              nickname: FirebaseAuth.instance.currentUser!.displayName ??
+                  (FirebaseAuth.instance.currentUser!.email?.split('@').first ?? 'NEXSUS'),
+              settings: _settings,
+              firebaseReady: widget.firebaseReady,
+            )
+          : AuthScreen(
+              firebaseReady: widget.firebaseReady,
+              onAuthenticated: (context, nickname) {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => HomeScreen(nickname: nickname, settings: _settings, firebaseReady: widget.firebaseReady)),
+                );
+              },
+            ),
     ),
   );
 }
@@ -91,7 +95,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Timer? _timer;
   DateTime _now = DateTime.now();
   int _selected = 0;
@@ -100,14 +104,67 @@ class _HomeScreenState extends State<HomeScreen> {
   static const String _intentionKey = 'nexsus_daily_intention_v1';
   static const String _intentionDateKey = 'nexsus_daily_intention_date_v1';
   bool _intentionSaved = false;
+  static const String _selectedTabKey = 'nexsus_selected_tab_v1';
+  static const String _goodDeedDateKey = 'nexsus_good_deed_date_v1';
+  static const String _goodDeedDoneKey = 'nexsus_good_deed_done_v1';
+  bool _goodDeedDone = false;
+  static const List<String> _goodDeeds = [
+    'Напиши близкому человеку и спроси, как у него дела.',
+    'Помоги кому-нибудь с небольшим делом, не ожидая благодарности.',
+    'Сдай батарейки или пластик в подходящий пункт приёма.',
+    'Поделись полезным знанием или поддержи начинающего.',
+    'Поблагодари человека, чей труд часто остаётся незаметным.',
+    'Уступи место или помоги человеку, которому это нужно.',
+    'Убери небольшой участок вокруг себя — двор, парк или рабочее место.',
+  ];
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _restoreHomeState();
     _loadDailyIntention();
+    _loadGoodDeed();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() => _now = DateTime.now());
     });
+  }
+
+  Future<void> _restoreHomeState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedTab = (prefs.getInt(_selectedTabKey) ?? 0).clamp(0, 4);
+    if (!mounted) return;
+    setState(() { _selected = savedTab; _visitedTabs.add(savedTab); });
+  }
+
+  Future<void> _saveSelectedTab(int value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_selectedTabKey, value);
+  }
+
+  Future<void> _loadGoodDeed() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    if (!mounted) return;
+    setState(() => _goodDeedDone =
+        prefs.getString(_goodDeedDateKey) == today &&
+        prefs.getBool(_goodDeedDoneKey) == true);
+  }
+
+  int get _goodDeedIndex =>
+      DateTime.now().difference(DateTime(2025, 1, 1)).inDays.abs() % _goodDeeds.length;
+
+  Future<void> _completeGoodDeed() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    await prefs.setString(_goodDeedDateKey, today);
+    await prefs.setBool(_goodDeedDoneKey, true);
+    if (mounted) setState(() => _goodDeedDone = true);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted) setState(() => _now = DateTime.now());
   }
 
   Future<void> _loadDailyIntention() async {
@@ -135,6 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _intentionController.dispose();
     _timer?.cancel();
     super.dispose();
@@ -162,10 +220,10 @@ class _HomeScreenState extends State<HomeScreen> {
         Expanded(child: IndexedStack(index: _selected, children: pages)),
         NavigationBar(
           selectedIndex: _selected,
-          onDestinationSelected: (value) => setState(() {
-            _visitedTabs.add(value);
-            _selected = value;
-          }),
+          onDestinationSelected: (value) {
+            setState(() { _visitedTabs.add(value); _selected = value; });
+            _saveSelectedTab(value);
+          },
           destinations: [
             NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: AppText.tx('Главная', 'Home')),
             NavigationDestination(icon: Icon(Icons.graphic_eq), label: AppText.tx('Джарвис', 'Jarvis')),
@@ -185,9 +243,9 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(width: 10),
         const Text('NEXSUS', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: 3)),
         const Spacer(),
-        const Icon(Icons.circle, color: Color(0xFF36D9A0), size: 9),
+        const Icon(Icons.circle, color: Color(0xFF8BC9A5), size: 8),
         const SizedBox(width: 6),
-        Text('ЛИЧНОЕ ПРОСТРАНСТВО', style: TextStyle(fontSize: 9, color: Colors.white.withValues(alpha: .55), letterSpacing: 1)),
+        Text(AppText.tx('ЛИЧНОЕ ПРОСТРАНСТВО', 'PERSONAL SPACE'), style: TextStyle(fontSize: 9, color: Colors.white.withValues(alpha: .55), letterSpacing: 1)),
       ]),
       const SizedBox(height: 28),
       _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -202,14 +260,16 @@ class _HomeScreenState extends State<HomeScreen> {
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(widget.nickname, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
           SizedBox(height: 4),
+          Text('${_now.hour.toString().padLeft(2, '0')}:${_now.minute.toString().padLeft(2, '0')}', style: TextStyle(color: widget.settings.accent, fontSize: 17, fontWeight: FontWeight.w700)),
+          SizedBox(height: 2),
           Text(AppText.tx('Пользователь NEXSUS', 'NEXSUS user'), style: TextStyle(color: Colors.white60, fontSize: 12)),
         ])),
-        const Icon(Icons.verified, color: Color(0xFFFFD27A)),
+        Icon(Icons.verified, color: widget.settings.accent),
       ])),
       const SizedBox(height: 18),
       _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          const Icon(Icons.flag_outlined, color: Color(0xFFFFD27A)),
+          const Icon(Icons.flag_outlined, color: Color(0xFFB7A2F6)),
           const SizedBox(width: 9),
           Expanded(child: Text(AppText.tx('Главный приоритет на сегодня', 'Your main priority today'), style: const TextStyle(fontWeight: FontWeight.bold))),
           if (_intentionSaved) const Icon(Icons.check_circle, color: Color(0xFF36D9A0), size: 18),
@@ -223,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
           decoration: InputDecoration(
             hintText: AppText.tx('Что действительно важно сегодня?', 'What really matters today?'),
             filled: true,
-            fillColor: const Color(0xFF090D1B),
+            fillColor: const Color(0xFF22252A),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: BorderSide.none),
           ),
           onChanged: (_) { if (_intentionSaved) setState(() => _intentionSaved = false); },
@@ -233,7 +293,27 @@ class _HomeScreenState extends State<HomeScreen> {
           onPressed: _saveDailyIntention,
           icon: const Icon(Icons.check_rounded, size: 18),
           label: Text(AppText.tx('Сохранить фокус дня', 'Save today’s focus')),
-          style: FilledButton.styleFrom(backgroundColor: const Color(0xFF7652B8)),
+          style: FilledButton.styleFrom(backgroundColor: widget.settings.accent, foregroundColor: const Color(0xFF17131F)),
+        )),
+      ])),
+      const SizedBox(height: 18),
+      _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Icon(Icons.volunteer_activism_outlined, color: widget.settings.accent),
+          const SizedBox(width: 9),
+          Expanded(child: Text(AppText.tx('Доброе дело дня', 'A good deed today'),
+              style: const TextStyle(fontWeight: FontWeight.bold))),
+          if (_goodDeedDone) const Icon(Icons.check_circle, color: Color(0xFF36D9A0)),
+        ]),
+        const SizedBox(height: 9),
+        Text(_goodDeeds[_goodDeedIndex], style: const TextStyle(height: 1.4)),
+        const SizedBox(height: 10),
+        Align(alignment: Alignment.centerRight, child: FilledButton.tonalIcon(
+          onPressed: _goodDeedDone ? null : _completeGoodDeed,
+          icon: Icon(_goodDeedDone ? Icons.check : Icons.favorite_border),
+          label: Text(_goodDeedDone
+              ? AppText.tx('На сегодня выполнено', 'Done for today')
+              : AppText.tx('Сделано', 'I did it')),
         )),
       ])),
       const SizedBox(height: 22),
@@ -245,9 +325,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           _action(Icons.mic, AppText.tx('Джарвис', 'Jarvis'), AppText.tx('Голосовой помощник', 'Voice assistant'), 1),
           _action(Icons.note_alt_outlined, AppText.tx('Заметки', 'Notes'), AppText.tx('Быстрые записи', 'Quick notes'), 2),
-          _action(Icons.person_outline, AppText.tx('Профиль', 'Profile'), AppText.tx('Личные данные и настройки', 'Personal details and settings'), 4),
           _action(Icons.calendar_month, AppText.tx('Календарь', 'Calendar'), AppText.tx('Дни рождения и события', 'Birthdays and events'), 3),
-          _action(Icons.center_focus_strong, AppText.tx('Фокус', 'Focus'), AppText.tx('Таймер концентрации', 'Focus timer'), 6),
           _action(Icons.checklist_rounded, AppText.tx('Мои задачи', 'My tasks'), AppText.tx('План и сводка дня', 'Daily plan and summary'), 7),
         ],
       ),
@@ -267,16 +345,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _action(IconData icon, String title, String subtitle, int page) => InkWell(
     borderRadius: BorderRadius.circular(18),
-    onTap: () { if (page == 6) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const FocusScreen())); } else if (page == 7) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TasksScreen())); } else { setState(() { _visitedTabs.add(page); _selected = page; }); } },
+    onTap: () { if (page == 7) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TasksScreen())); } else { setState(() { _visitedTabs.add(page); _selected = page; }); _saveSelectedTab(page); } },
     child: Ink(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-        gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF21164A), Color(0xFF101A38)]),
-        border: Border.all(color: const Color(0xFF7650D8).withValues(alpha: .45)),
+        color: const Color(0xFF1A1C20),
+        border: Border.all(color: const Color(0xFF303238)),
       ),
       padding: const EdgeInsets.all(15),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-        Icon(icon, color: const Color(0xFFB99AFF), size: 25),
+        Icon(icon, color: widget.settings.accent, size: 23),
         const SizedBox(height: 8),
         Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 3),
@@ -286,11 +364,11 @@ class _HomeScreenState extends State<HomeScreen> {
   );
 
   Widget _panel({required Widget child}) => Container(
-    padding: const EdgeInsets.all(19),
+    padding: const EdgeInsets.all(18),
     decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(22),
-      gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF171832), Color(0xFF0D1025)]),
-      border: Border.all(color: const Color(0xFF6745BD).withValues(alpha: .42)),
+      borderRadius: BorderRadius.circular(18),
+      color: const Color(0xFF1A1C20),
+      border: Border.all(color: const Color(0xFF303238)),
     ),
     child: child,
   );
@@ -301,60 +379,21 @@ class _NexsusAvatar extends StatelessWidget {
   final double size;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
+  Widget build(BuildContext context) => Container(
     width: size,
     height: size,
-    child: DecoratedBox(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: const RadialGradient(
-          colors: [Color(0xFF493019), Color(0xFF17111A), Color(0xFF080A13)],
-          stops: [0, .58, 1],
-        ),
-        border: Border.all(color: const Color(0xFFFFD27A), width: size * .035),
-        boxShadow: const [
-          BoxShadow(color: Color(0x66FFB84D), blurRadius: 13, spreadRadius: 1),
-        ],
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Transform.rotate(
-            angle: -.42,
-            child: Container(
-              width: size * .78,
-              height: size * .30,
-              decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xFFFFD27A), width: size * .025),
-                borderRadius: BorderRadius.circular(size),
-              ),
-            ),
-          ),
-          Text(
-            'N',
-            style: TextStyle(
-              fontFamily: 'serif',
-              fontSize: size * .68,
-              height: 1,
-              fontWeight: FontWeight.w900,
-              color: const Color(0xFFFFD27A),
-              shadows: const [Shadow(color: Color(0xFFFFA629), blurRadius: 12)],
-            ),
-          ),
-          Positioned(
-            top: size * .10,
-            right: size * .18,
-            child: Container(
-              width: size * .07,
-              height: size * .07,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFFF0C2),
-                shape: BoxShape.circle,
-                boxShadow: [BoxShadow(color: Color(0xFFFFC45C), blurRadius: 7)],
-              ),
-            ),
-          ),
-        ],
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      color: const Color(0xFF292B31),
+      shape: BoxShape.circle,
+      border: Border.all(color: const Color(0xFF454850)),
+    ),
+    child: Text(
+      'N',
+      style: TextStyle(
+        fontSize: size * .48,
+        fontWeight: FontWeight.w700,
+        color: Theme.of(context).colorScheme.primary,
       ),
     ),
   );
