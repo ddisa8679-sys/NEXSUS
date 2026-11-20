@@ -194,7 +194,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ]),
                     ),
                     const SizedBox(height: 20),
-                    const Text(AppText.tx('ЗАЩИЩЁННОЕ ЛИЧНОЕ ПРОСТРАНСТВО', 'YOUR PRIVATE DIGITAL SPACE'),
+                    Text(AppText.tx('ЗАЩИЩЁННОЕ ЛИЧНОЕ ПРОСТРАНСТВО', 'YOUR PRIVATE DIGITAL SPACE'),
                       textAlign: TextAlign.center, style: TextStyle(fontSize: 10, color: Colors.white38, letterSpacing: 1)),
                   ]),
                 ),
@@ -230,10 +230,10 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void _forgot() {
     showDialog<void>(context: context, builder: (context) => AlertDialog(
-      title: const Text(AppText.tx('Восстановление пароля', 'Password recovery')),
-      content: const Text(AppText.tx('На указанный адрес будет отправлена ссылка для сброса пароля.', 'A password reset link will be sent to your email address.')),
+      title: Text(AppText.tx('Восстановление пароля', 'Password recovery')),
+      content: Text(AppText.tx('На указанный адрес будет отправлена ссылка для сброса пароля.', 'A password reset link will be sent to your email address.')),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text(AppText.tx('Отмена', 'Cancel'))),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(AppText.tx('Отмена', 'Cancel'))),
         FilledButton(onPressed: () async {
           Navigator.pop(context);
           if (!widget.firebaseReady) {
@@ -252,7 +252,7 @@ class _AuthScreenState extends State<AuthScreen> {
           } catch (_) {
             _message('Firebase ещё не настроен. Проверь конфигурацию Android.');
           }
-        }, child: const Text(AppText.tx('Отправить', 'Send'))),
+        }, child: Text(AppText.tx('Отправить', 'Send'))),
       ],
     ));
   }
