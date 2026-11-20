@@ -98,6 +98,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   static const String _intentionDateKey = 'nexsus_daily_intention_date_v1';
   bool _intentionSaved = false;
   static const String _selectedTabKey = 'nexsus_selected_tab_v1';
+  static const String _goodDeedDateKey = 'nexsus_good_deed_date_v1';
+  static const String _goodDeedDoneKey = 'nexsus_good_deed_done_v1';
+  bool _goodDeedDone = false;
+  static const List<String> _goodDeeds = [
+    'Напиши близкому человеку и спроси, как у него дела.',
+    'Помоги кому-нибудь с небольшим делом, не ожидая благодарности.',
+    'Сдай батарейки или пластик в подходящий пункт приёма.',
+    'Поделись полезным знанием или поддержи начинающего.',
+    'Поблагодари человека, чей труд часто остаётся незаметным.',
+    'Уступи место или помоги человеку, которому это нужно.',
+    'Убери небольшой участок вокруг себя — двор, парк или рабочее место.',
+  ];
 
   @override
   void initState() {
@@ -105,6 +117,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _restoreHomeState();
     _loadDailyIntention();
+    _loadGoodDeed();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() => _now = DateTime.now());
     });
@@ -120,6 +133,26 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _saveSelectedTab(int value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_selectedTabKey, value);
+  }
+
+  Future<void> _loadGoodDeed() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    if (!mounted) return;
+    setState(() => _goodDeedDone =
+        prefs.getString(_goodDeedDateKey) == today &&
+        prefs.getBool(_goodDeedDoneKey) == true);
+  }
+
+  int get _goodDeedIndex =>
+      DateTime.now().difference(DateTime(2025, 1, 1)).inDays.abs() % _goodDeeds.length;
+
+  Future<void> _completeGoodDeed() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    await prefs.setString(_goodDeedDateKey, today);
+    await prefs.setBool(_goodDeedDoneKey, true);
+    if (mounted) setState(() => _goodDeedDone = true);
   }
 
   @override
@@ -254,6 +287,26 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           icon: const Icon(Icons.check_rounded, size: 18),
           label: Text(AppText.tx('Сохранить фокус дня', 'Save today’s focus')),
           style: FilledButton.styleFrom(backgroundColor: widget.settings.accent, foregroundColor: const Color(0xFF17131F)),
+        )),
+      ])),
+      const SizedBox(height: 18),
+      _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Icon(Icons.volunteer_activism_outlined, color: widget.settings.accent),
+          const SizedBox(width: 9),
+          Expanded(child: Text(AppText.tx('Доброе дело дня', 'A good deed today'),
+              style: const TextStyle(fontWeight: FontWeight.bold))),
+          if (_goodDeedDone) const Icon(Icons.check_circle, color: Color(0xFF36D9A0)),
+        ]),
+        const SizedBox(height: 9),
+        Text(_goodDeeds[_goodDeedIndex], style: const TextStyle(height: 1.4)),
+        const SizedBox(height: 10),
+        Align(alignment: Alignment.centerRight, child: FilledButton.tonalIcon(
+          onPressed: _goodDeedDone ? null : _completeGoodDeed,
+          icon: Icon(_goodDeedDone ? Icons.check : Icons.favorite_border),
+          label: Text(_goodDeedDone
+              ? AppText.tx('На сегодня выполнено', 'Done for today')
+              : AppText.tx('Сделано', 'I did it')),
         )),
       ])),
       const SizedBox(height: 22),
