@@ -125,7 +125,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         color: const Color(0xFF22252A),
                         border: Border.all(color: const Color(0xFF454850), width: 1),
                       ),
-                      child: const Center(child: Text('N', style: TextStyle(fontSize: 54, fontWeight: FontWeight.w900, color: Color(0xFFFFD27A), fontFamily: 'serif', height: 1))),
+                      child: const Center(child: Text('N', style: TextStyle(fontSize: 54, fontWeight: FontWeight.w900, color: Color(0xFFB7A2F6), fontFamily: 'serif', height: 1))),
                     ),
                     const SizedBox(height: 8),
                     const Text('NEXSUS', textAlign: TextAlign.center,
