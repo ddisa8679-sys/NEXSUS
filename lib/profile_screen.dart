@@ -48,7 +48,7 @@ class ProfileScreen extends StatelessWidget {
             DropdownButtonFormField<String>(
               value: settings.language,
               decoration: const InputDecoration(border: OutlineInputBorder(), prefixIcon: Icon(Icons.language)),
-              items: const [
+              items: [
                 DropdownMenuItem(value: 'ru', child: Text(AppText.tx('Русский', 'Russian'))),
                 DropdownMenuItem(value: 'en', child: Text('English')),
               ],
@@ -87,7 +87,7 @@ class ProfileScreen extends StatelessWidget {
             _choice(context, 'mono', AppText.tx('Моноширинный', 'Monospace'), settings.font, (v) => settings.setFont(v)),
             const Divider(height: 28, color: Colors.white12),
             Row(children: [
-              const Expanded(child: Text(AppText.tx('Размер текста', 'Text size'), style: TextStyle(fontWeight: FontWeight.w600))),
+              Expanded(child: Text(AppText.tx('Размер текста', 'Text size'), style: TextStyle(fontWeight: FontWeight.w600))),
               Text('${(settings.fontScale * 100).round()}%', style: TextStyle(color: settings.accent, fontWeight: FontWeight.bold)),
             ]),
             Slider(
