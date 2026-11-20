@@ -6,6 +6,7 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
+import 'app_text.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -21,7 +22,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   bool _loaded = false;
   bool _notificationsReady = false;
   bool _exactAlarmsAllowed = false;
-  String _notificationStatus = 'Подготавливаю уведомления…';
+  String _notificationStatus = AppText.tx('Подготавливаю уведомления…', 'Preparing notifications…');
   DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
 
   @override
@@ -43,21 +44,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
       if (_notificationsReady) {
         _exactAlarmsAllowed = await androidPlugin?.requestExactAlarmsPermission() ?? false;
         await androidPlugin?.createNotificationChannel(const AndroidNotificationChannel(
-          _channelId, 'Напоминания календаря',
-          description: 'Напоминания за день и в день важного события',
+          _channelId, AppText.tx('Напоминания календаря', 'Calendar reminders'),
+          description: AppText.tx('Напоминания за день и в день важного события', 'Reminders one day before and on important dates'),
           importance: Importance.max,
         ));
       }
     } catch (_) {
-      _notificationStatus = 'Не удалось включить уведомления. Проверь разрешения Android.';
+      _notificationStatus = AppText.tx('Не удалось включить уведомления. Проверь разрешения Android.', 'Could not enable notifications. Check Android permissions.');
     }
     await _loadEvents();
     if (mounted) setState(() {
       _notificationStatus = !_notificationsReady
-          ? 'Разреши уведомления NEXSUS в настройках Android'
+          ? AppText.tx('Разреши уведомления NEXSUS в настройках Android', 'Allow NEXSUS notifications in Android settings')
           : _exactAlarmsAllowed
-              ? 'Точные уведомления включены · за день и в день события'
-              : 'Уведомления включены · Android может немного сдвигать время';
+              ? AppText.tx('Точные уведомления включены · за день и в день события', 'Exact reminders enabled · one day before and on the event day')
+              : AppText.tx('Уведомления включены · Android может немного сдвигать время', 'Notifications enabled · Android may slightly adjust delivery time');
     });
   }
 
@@ -102,7 +103,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final eventId = event['id'] as String;
     final date = _nextDate(event);
     final title = event['title'] as String;
-    final kind = event['kind'] as String? ?? 'Важная дата';
+    final kind = event['kind'] as String? ?? AppText.tx('Важная дата', 'Important date');
     final yearly = event['yearly'] == true;
     final dayBefore = DateTime(date.year, date.month, date.day).subtract(const Duration(days: 1));
     final eventDay = DateTime(date.year, date.month, date.day);
@@ -116,8 +117,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     const details = NotificationDetails(
       android: AndroidNotificationDetails(
-        _channelId, 'Напоминания календаря',
-        channelDescription: 'За день и в день важного события',
+        _channelId, AppText.tx('Напоминания календаря', 'Calendar reminders'),
+        channelDescription: AppText.tx('За день и в день важного события', 'One day before and on the event day'),
         importance: Importance.max,
         priority: Priority.high,
         category: AndroidNotificationCategory.reminder,
@@ -184,20 +185,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final title = TextEditingController();
     final details = TextEditingController();
     DateTime date = DateTime.now();
-    String kind = 'Важная дата';
+    String kind = AppText.tx('Важная дата', 'Important date');
     bool yearly = false;
     final saved = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(builder: (context, refresh) => AlertDialog(
-        title: const Text('Новое событие'),
+        title: Text(AppText.tx('Новое событие', 'New event')),
         content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(controller: title, autofocus: true, decoration: const InputDecoration(labelText: 'Название события')),
-          TextField(controller: details, decoration: const InputDecoration(labelText: 'Заметка (необязательно)')),
+          TextField(controller: title, autofocus: true, decoration: const InputDecoration(labelText: AppText.tx('Название события', 'Event title'))),
+          TextField(controller: details, decoration: const InputDecoration(labelText: AppText.tx('Заметка (необязательно)', 'Note (optional)'))),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: kind,
-            decoration: const InputDecoration(labelText: 'Категория'),
-            items: const ['День рождения', 'Праздник', 'Годовщина', 'Работа', 'Личное', 'Важная дата']
+            decoration: const InputDecoration(labelText: AppText.tx('Категория', 'Category')),
+            items: const ['День рождения', 'Праздник', 'Годовщина', 'Работа', 'Личное', AppText.tx('Важная дата', 'Important date')]
                 .map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
             onChanged: (v) { if (v != null) refresh(() => kind = v); },
           ),
@@ -217,14 +218,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
             contentPadding: EdgeInsets.zero,
             value: yearly,
             onChanged: (v) => refresh(() => yearly = v ?? false),
-            title: const Text('Повторять каждый год'),
-            subtitle: const Text('Для дней рождения и ежегодных праздников'),
+            title: Text(AppText.tx('Повторять каждый год', 'Repeat every year')),
+            subtitle: const Text(AppText.tx('Для дней рождения и ежегодных праздников', 'For birthdays and annual holidays')),
           ),
-          const Text('Напоминания придут в 09:00 за день до события и в день события.', style: TextStyle(fontSize: 12, color: Colors.white60)),
+          const Text(AppText.tx('Напоминания придут в 09:00 за день до события и в день события.', 'Reminders arrive at 09:00 one day before and on the event day.'), style: TextStyle(fontSize: 12, color: Colors.white60)),
         ])),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Отмена')),
-          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Сохранить')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text(AppText.tx('Отмена', 'Cancel'))),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text(AppText.tx('Сохранить', 'Save'))),
         ],
       )),
     );
@@ -270,15 +271,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final days = DateUtils.getDaysInMonth(_selectedMonth.year, _selectedMonth.month);
     final firstOffset = DateTime(_selectedMonth.year, _selectedMonth.month, 1).weekday - 1;
     final marked = _events.map(_nextDate).where((d) => d.year == _selectedMonth.year && d.month == _selectedMonth.month).map((d) => d.day).toSet();
-    const monthNames = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+    final monthNames = AppText.language == 'en' ? ['January','February','March','April','May','June','July','August','September','October','November','December'] : ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
     return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(onPressed: _addEvent, icon: const Icon(Icons.add), label: const Text('Добавить дату')),
+      floatingActionButton: FloatingActionButton.extended(onPressed: _addEvent, icon: const Icon(Icons.add), label: Text(AppText.tx('Добавить дату', 'Add date'))),
       body: SafeArea(child: !_loaded ? const Center(child: CircularProgressIndicator()) : ListView(
         padding: const EdgeInsets.fromLTRB(20, 22, 20, 100),
         children: [
           const Text('NEXSUS / CALENDAR', style: TextStyle(color: Color(0xFFFFD27A), fontSize: 11, letterSpacing: 2, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          const Text('Твои важные даты', style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
+          const Text(AppText.tx('Твои важные даты', 'Your important dates'), style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
           const SizedBox(height: 7),
           Text(_notificationStatus, style: TextStyle(fontSize: 11, color: _notificationsReady ? const Color(0xFF55D6A4) : Colors.orangeAccent)),
           const SizedBox(height: 18),
@@ -322,15 +323,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ]),
           ),
           const SizedBox(height: 22),
-          Row(children: [const Expanded(child: Text('БЛИЖАЙШИЕ СОБЫТИЯ', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2))), Text('${upcoming.length}', style: const TextStyle(color: Color(0xFFFFD27A)))]),
+          Row(children: [const Expanded(child: Text(AppText.tx('БЛИЖАЙШИЕ СОБЫТИЯ', 'UPCOMING EVENTS'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2))), Text('${upcoming.length}', style: const TextStyle(color: Color(0xFFFFD27A)))]),
           const SizedBox(height: 10),
           if (upcoming.isEmpty)
             const Padding(padding: EdgeInsets.symmetric(vertical: 28), child: Column(children: [
               Icon(Icons.event_available, size: 46, color: Color(0xFFB99AFF)),
               SizedBox(height: 10),
-              Text('Пока нет важных дат', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text(AppText.tx('Пока нет важных дат', 'No important dates yet'), style: TextStyle(fontWeight: FontWeight.bold)),
               SizedBox(height: 5),
-              Text('Добавь день рождения, праздник или любую памятную дату.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 12)),
+              Text(AppText.tx('Добавь день рождения, праздник или любую памятную дату.', 'Add a birthday, holiday, or any date worth remembering.'), textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 12)),
             ]))
           else
             ...upcoming.map((event) {
@@ -353,12 +354,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     Text('${event['kind']} · ${_dateLabel(date)}${yearly ? ' · ежегодно' : ''}', style: const TextStyle(fontSize: 10, color: Colors.white60)),
                     if (detail.isNotEmpty) Text(detail, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, color: Colors.white54)),
                   ])),
-                  IconButton(onPressed: () => _deleteEvent(event), tooltip: 'Удалить событие', icon: const Icon(Icons.delete_outline, color: Colors.white38)),
+                  IconButton(onPressed: () => _deleteEvent(event), tooltip: AppText.tx('Удалить событие', 'Delete event'), icon: const Icon(Icons.delete_outline, color: Colors.white38)),
                 ]),
               );
             }),
           const SizedBox(height: 8),
-          const Text('Напоминания планируются на устройстве. Для своевременной доставки не отключай уведомления NEXSUS и разрешение точных будильников в Android.', style: TextStyle(fontSize: 10, color: Colors.white38, height: 1.4)),
+          const Text(AppText.tx('Напоминания планируются на устройстве. Для своевременной доставки не отключай уведомления NEXSUS и разрешение точных будильников в Android.', 'Reminders are scheduled on this device. Keep NEXSUS notifications and exact alarm permission enabled for timely delivery.'), style: TextStyle(fontSize: 10, color: Colors.white38, height: 1.4)),
         ],
       )),
     );
