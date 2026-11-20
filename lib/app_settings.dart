@@ -1,3 +1,4 @@
+import 'app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -44,6 +45,7 @@ class AppSettings extends ChangeNotifier {
     background = prefs.getString(_backgroundKey) ?? background;
     fontScale = prefs.getDouble(_scaleKey) ?? fontScale;
     language = prefs.getString(_languageKey) ?? language;
+    AppText.language = language;
     notifyListeners();
   }
 
@@ -70,6 +72,7 @@ class AppSettings extends ChangeNotifier {
 
   Future<void> setLanguage(String value) async {
     language = value;
+    AppText.language = value;
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_languageKey, value);
