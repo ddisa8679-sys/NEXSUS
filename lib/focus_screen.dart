@@ -97,7 +97,7 @@ class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) => ListView(padding: const EdgeInsets.fromLTRB(22, 26, 22, 32), children: [
-    Text(AppText.tx('NEXSUS / РЕЖИМ ФОКУСА', 'NEXSUS / FOCUS MODE'), style: TextStyle(color: Color(0xFFFFD27A), fontSize: 11, letterSpacing: 2, fontWeight: FontWeight.bold)),
+    Text(AppText.tx('NEXSUS / РЕЖИМ ФОКУСА', 'NEXSUS / FOCUS MODE'), style: TextStyle(color: Color(0xFFB7A2F6), fontSize: 11, letterSpacing: 2, fontWeight: FontWeight.bold)),
     const SizedBox(height: 10),
     Text(AppText.tx('Время для главного', 'Time for what matters'), style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
     const SizedBox(height: 8),
@@ -109,7 +109,7 @@ class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
       border: Border.all(color: const Color(0x66B99AFF))),
       child: Column(children: [
         SizedBox(width: 218, height: 218, child: Stack(alignment: Alignment.center, children: [
-          SizedBox.expand(child: CircularProgressIndicator(value: _progress, strokeWidth: 7, backgroundColor: Colors.white12, color: const Color(0xFFFFD27A), strokeCap: StrokeCap.round)),
+          SizedBox.expand(child: CircularProgressIndicator(value: _progress, strokeWidth: 7, backgroundColor: Colors.white12, color: const Color(0xFFB7A2F6), strokeCap: StrokeCap.round)),
           Column(mainAxisSize: MainAxisSize.min, children: [
             Text(_clock, style: const TextStyle(fontSize: 49, fontWeight: FontWeight.w300, fontFeatures: [FontFeature.tabularFigures()])),
             const SizedBox(height: 5),
@@ -127,8 +127,8 @@ class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
       ]),
     ),
     const SizedBox(height: 18),
-    Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(color: const Color(0xFF15182C), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white10)), child: Row(children: [
-      const Icon(Icons.local_fire_department_outlined, color: Color(0xFFFFD27A), size: 30),
+    Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(color: const Color(0xFF1A1C20), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white10)), child: Row(children: [
+      const Icon(Icons.local_fire_department_outlined, color: Color(0xFFB7A2F6), size: 30),
       const SizedBox(width: 13),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(AppText.tx('Завершённые сессии', 'Completed sessions'), style: TextStyle(color: Colors.white60, fontSize: 12)),
