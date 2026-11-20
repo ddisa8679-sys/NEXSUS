@@ -29,7 +29,17 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 20),
           _section(
             child: Row(children: [
-              CircleAvatar(radius: 31, backgroundColor: settings.accent.withValues(alpha: .22), child: Icon(Icons.person, color: settings.accent, size: 34)),
+              Container(
+                width: 64, height: 64,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [settings.accent, const Color(0xFF211A43)]),
+                  border: Border.all(color: const Color(0xFFFFD27A), width: 1.5),
+                  boxShadow: [BoxShadow(color: settings.accent.withValues(alpha: .28), blurRadius: 18)],
+                ),
+                alignment: Alignment.center,
+                child: Text(nickname.trim().isEmpty ? 'N' : nickname.trim().substring(0, 1).toUpperCase(), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white)),
+              ),
               const SizedBox(width: 14),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(nickname, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
