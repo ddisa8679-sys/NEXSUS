@@ -45,11 +45,14 @@ class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
     if (_running) return;
     setState(() { _minutes = v; _remaining = v * 60; _finished = false; });
   }
-  void _start() {
-    if (_remaining <= 0) return;
+  Future<void> _start() async {
+    if (_remaining <= 0 || _running) return;
     _timer?.cancel();
-    _endsAt = DateTime.now().add(Duration(seconds: _remaining));
-    SharedPreferences.getInstance().then((p) => p.setInt(_endKey, _endsAt!.millisecondsSinceEpoch));
+    final end = DateTime.now().add(Duration(seconds: _remaining));
+    _endsAt = end;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_endKey, end.millisecondsSinceEpoch);
+    if (!mounted || _endsAt != end) return;
     setState(() { _running = true; _finished = false; });
     _timer = Timer.periodic(const Duration(seconds: 1), (_) => _refreshRemaining());
   }
