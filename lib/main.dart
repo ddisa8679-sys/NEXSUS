@@ -1,9 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'auth_screen.dart';
 import 'jarvis_screen.dart';
 import 'notes_screen.dart';
+import 'app_settings.dart';
+import 'app_text.dart';
+import 'profile_screen.dart';
+import 'focus_screen.dart';
+import 'tasks_screen.dart';
+import 'calendar_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,33 +26,67 @@ Future<void> main() async {
   runApp(NexsusApp(firebaseReady: firebaseReady));
 }
 
-class NexsusApp extends StatelessWidget {
+class NexsusApp extends StatefulWidget {
   const NexsusApp({super.key, required this.firebaseReady});
   final bool firebaseReady;
   @override
-  Widget build(BuildContext context) => MaterialApp(
-    debugShowCheckedModeBanner: false,
-    title: 'NEXSUS',
-    theme: ThemeData(
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: const Color(0xFF070817),
-      colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF8050FF), brightness: Brightness.dark),
-      useMaterial3: true,
-    ),
-    home: AuthScreen(
-      firebaseReady: firebaseReady,
-      onAuthenticated: (context, nickname) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => HomeScreen(nickname: nickname)),
-        );
-      },
+  State<NexsusApp> createState() => _NexsusAppState();
+}
+
+class _NexsusAppState extends State<NexsusApp> {
+  final AppSettings _settings = AppSettings();
+
+  @override
+  void initState() {
+    super.initState();
+    _settings.load();
+  }
+
+  @override
+  void dispose() {
+    _settings.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _settings,
+    builder: (context, _) => MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'NEXSUS',
+      locale: Locale(_settings.language),
+      supportedLocales: const [Locale('ru'), Locale('en')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: _settings.scaffoldColor,
+        colorScheme: ColorScheme.fromSeed(seedColor: _settings.accent, brightness: Brightness.dark),
+        fontFamily: _settings.fontFamily,
+        useMaterial3: true,
+      ),
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          textScaler: TextScaler.linear(_settings.fontScale),
+        ),
+        child: child ?? const SizedBox.shrink(),
+      ),
+      home: AuthScreen(
+        firebaseReady: widget.firebaseReady,
+        onAuthenticated: (context, nickname) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => HomeScreen(nickname: nickname, settings: _settings, firebaseReady: widget.firebaseReady)),
+          );
+        },
+      ),
     ),
   );
 }
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.nickname});
+  const HomeScreen({super.key, required this.nickname, required this.settings, required this.firebaseReady});
   final String nickname;
+  final AppSettings settings;
+  final bool firebaseReady;
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -52,55 +95,83 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _timer;
   DateTime _now = DateTime.now();
   int _selected = 0;
+  final Set<int> _visitedTabs = {0};
+  final TextEditingController _intentionController = TextEditingController();
+  static const String _intentionKey = 'nexsus_daily_intention_v1';
+  static const String _intentionDateKey = 'nexsus_daily_intention_date_v1';
+  bool _intentionSaved = false;
 
   @override
   void initState() {
     super.initState();
+    _loadDailyIntention();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() => _now = DateTime.now());
     });
   }
 
+  Future<void> _loadDailyIntention() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    if (!mounted) return;
+    if (prefs.getString(_intentionDateKey) == today) {
+      _intentionController.text = prefs.getString(_intentionKey) ?? '';
+      setState(() => _intentionSaved = _intentionController.text.isNotEmpty);
+    }
+  }
+
+  Future<void> _saveDailyIntention() async {
+    final value = _intentionController.text.trim();
+    if (value.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppText.tx('Запиши один главный приоритет на сегодня.', 'Write down one priority for today.'))));
+      return;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    await prefs.setString(_intentionKey, value);
+    await prefs.setString(_intentionDateKey, today);
+    if (mounted) setState(() => _intentionSaved = true);
+  }
+
   @override
   void dispose() {
+    _intentionController.dispose();
     _timer?.cancel();
     super.dispose();
   }
 
   String get _greeting {
     final hour = _now.hour;
-    if (hour >= 5 && hour < 12) return 'Доброе утро';
-    if (hour >= 12 && hour < 18) return 'Добрый день';
-    if (hour >= 18 && hour < 23) return 'Добрый вечер';
-    return 'Доброй ночи';
+    if (hour >= 5 && hour < 12) return AppText.tx('Доброе утро', 'Good morning');
+    if (hour >= 12 && hour < 18) return AppText.tx('Добрый день', 'Good afternoon');
+    if (hour >= 18 && hour < 23) return AppText.tx('Добрый вечер', 'Good evening');
+    return AppText.tx('Доброй ночи', 'Good night');
   }
-
-  String get _date => '${_weekday(_now.weekday)}, ${_now.day} ${_month(_now.month)} ${_now.year}';
-  String _weekday(int day) => const ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'][day - 1];
-  String _month(int month) => const ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'][month - 1];
-  String _two(int value) => value.toString().padLeft(2, '0');
 
   @override
   Widget build(BuildContext context) {
     final pages = [
       _dashboard(),
-      JarvisScreen(nickname: widget.nickname),
-      const NotesScreen(),
-      const _PlaceholderPage(icon: Icons.access_time, title: 'Цифровой Блат', subtitle: 'Персональный цифровой циферблат.'),
-      const _PlaceholderPage(icon: Icons.person_outline, title: 'Профиль', subtitle: 'Настройки профиля и аватара.'),
+      _visitedTabs.contains(1) ? JarvisScreen(nickname: widget.nickname) : const SizedBox.shrink(),
+      _visitedTabs.contains(2) ? const NotesScreen() : const SizedBox.shrink(),
+      _visitedTabs.contains(3) ? const CalendarScreen() : const SizedBox.shrink(),
+      _visitedTabs.contains(4) ? ProfileScreen(nickname: widget.nickname, settings: widget.settings, onSignOut: () async { await FirebaseAuth.instance.signOut(); if (!mounted) return; Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => AuthScreen(firebaseReady: widget.firebaseReady, onAuthenticated: (ctx, name) { Navigator.of(ctx).pushReplacement(MaterialPageRoute(builder: (_) => HomeScreen(nickname: name, settings: widget.settings, firebaseReady: widget.firebaseReady))); })), (route) => false); }) : const SizedBox.shrink(),
     ];
     return Scaffold(
       body: SafeArea(child: Column(children: [
         Expanded(child: IndexedStack(index: _selected, children: pages)),
         NavigationBar(
           selectedIndex: _selected,
-          onDestinationSelected: (value) => setState(() => _selected = value),
-          destinations: const [
-            NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Главная'),
-            NavigationDestination(icon: Icon(Icons.graphic_eq), label: 'Джарвис'),
-            NavigationDestination(icon: Icon(Icons.sticky_note_2_outlined), label: 'Заметки'),
-            NavigationDestination(icon: Icon(Icons.schedule), label: 'Часы'),
-            NavigationDestination(icon: Icon(Icons.person_outline), label: 'Профиль'),
+          onDestinationSelected: (value) => setState(() {
+            _visitedTabs.add(value);
+            _selected = value;
+          }),
+          destinations: [
+            NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: AppText.tx('Главная', 'Home')),
+            NavigationDestination(icon: Icon(Icons.graphic_eq), label: AppText.tx('Джарвис', 'Jarvis')),
+            NavigationDestination(icon: Icon(Icons.sticky_note_2_outlined), label: AppText.tx('Заметки', 'Notes')),
+            NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month), label: AppText.tx('Календарь', 'Calendar')),
+            NavigationDestination(icon: Icon(Icons.person_outline), label: AppText.tx('Профиль', 'Profile')),
           ],
         ),
       ])),
@@ -108,7 +179,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _dashboard() {
-    final time = '${_two(_now.hour)}:${_two(_now.minute)}:${_two(_now.second)}';
     return ListView(padding: const EdgeInsets.fromLTRB(20, 22, 20, 28), children: [
       Row(children: [
         const _NexsusAvatar(size: 38),
@@ -123,11 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('$_greeting, ${widget.nickname}!', style: const TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
         const SizedBox(height: 7),
-        Text('Рады снова тебя видеть.', style: TextStyle(color: Colors.white.withValues(alpha: .65))),
-        const SizedBox(height: 22),
-        Text(time, style: const TextStyle(fontSize: 42, fontWeight: FontWeight.w300, color: Color(0xFFB99AFF), letterSpacing: 2)),
-        const SizedBox(height: 4),
-        Text(_date, style: TextStyle(color: Colors.white.withValues(alpha: .65))),
+        Text(AppText.tx('Рады снова тебя видеть.', 'Good to see you again.'), style: TextStyle(color: Colors.white.withValues(alpha: .65))),
       ])),
       const SizedBox(height: 16),
       _panel(child: Row(children: [
@@ -136,21 +202,53 @@ class _HomeScreenState extends State<HomeScreen> {
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(widget.nickname, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
           SizedBox(height: 4),
-          Text('Пользователь NEXSUS', style: TextStyle(color: Colors.white60, fontSize: 12)),
+          Text(AppText.tx('Пользователь NEXSUS', 'NEXSUS user'), style: TextStyle(color: Colors.white60, fontSize: 12)),
         ])),
         const Icon(Icons.verified, color: Color(0xFFFFD27A)),
       ])),
+      const SizedBox(height: 18),
+      _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          const Icon(Icons.flag_outlined, color: Color(0xFFFFD27A)),
+          const SizedBox(width: 9),
+          Expanded(child: Text(AppText.tx('Главный приоритет на сегодня', 'Your main priority today'), style: const TextStyle(fontWeight: FontWeight.bold))),
+          if (_intentionSaved) const Icon(Icons.check_circle, color: Color(0xFF36D9A0), size: 18),
+        ]),
+        const SizedBox(height: 10),
+        TextField(
+          controller: _intentionController,
+          maxLines: 2,
+          minLines: 1,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: InputDecoration(
+            hintText: AppText.tx('Что действительно важно сегодня?', 'What really matters today?'),
+            filled: true,
+            fillColor: const Color(0xFF090D1B),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: BorderSide.none),
+          ),
+          onChanged: (_) { if (_intentionSaved) setState(() => _intentionSaved = false); },
+        ),
+        const SizedBox(height: 8),
+        Align(alignment: Alignment.centerRight, child: FilledButton.icon(
+          onPressed: _saveDailyIntention,
+          icon: const Icon(Icons.check_rounded, size: 18),
+          label: Text(AppText.tx('Сохранить фокус дня', 'Save today’s focus')),
+          style: FilledButton.styleFrom(backgroundColor: const Color(0xFF7652B8)),
+        )),
+      ])),
       const SizedBox(height: 22),
-      const Text('БЫСТРЫЙ ДОСТУП', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.4)),
+      Text(AppText.tx('БЫСТРЫЙ ДОСТУП', 'QUICK ACCESS'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.4)),
       const SizedBox(height: 12),
       GridView.count(
         crossAxisCount: 2, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
         crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.55,
         children: [
-          _action(Icons.mic, 'Джарвис', 'Голосовой помощник', 1),
-          _action(Icons.note_alt_outlined, 'Заметки', 'Быстрые записи', 2),
-          _action(Icons.watch_later_outlined, 'Цифровой Блат', 'Твои часы', 3),
-          _action(Icons.person_outline, 'Профиль', 'Личные данные', 4),
+          _action(Icons.mic, AppText.tx('Джарвис', 'Jarvis'), AppText.tx('Голосовой помощник', 'Voice assistant'), 1),
+          _action(Icons.note_alt_outlined, AppText.tx('Заметки', 'Notes'), AppText.tx('Быстрые записи', 'Quick notes'), 2),
+          _action(Icons.person_outline, AppText.tx('Профиль', 'Profile'), AppText.tx('Личные данные и настройки', 'Personal details and settings'), 4),
+          _action(Icons.calendar_month, AppText.tx('Календарь', 'Calendar'), AppText.tx('Дни рождения и события', 'Birthdays and events'), 3),
+          _action(Icons.center_focus_strong, AppText.tx('Фокус', 'Focus'), AppText.tx('Таймер концентрации', 'Focus timer'), 6),
+          _action(Icons.checklist_rounded, AppText.tx('Мои задачи', 'My tasks'), AppText.tx('План и сводка дня', 'Daily plan and summary'), 7),
         ],
       ),
       const SizedBox(height: 18),
@@ -169,7 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _action(IconData icon, String title, String subtitle, int page) => InkWell(
     borderRadius: BorderRadius.circular(18),
-    onTap: () => setState(() => _selected = page),
+    onTap: () { if (page == 6) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const FocusScreen())); } else if (page == 7) { Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TasksScreen())); } else { setState(() { _visitedTabs.add(page); _selected = page; }); } },
     child: Ink(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
@@ -198,25 +296,6 @@ class _HomeScreenState extends State<HomeScreen> {
   );
 }
 
-class _PlaceholderPage extends StatelessWidget {
-  const _PlaceholderPage({required this.icon, required this.title, required this.subtitle});
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  @override
-  Widget build(BuildContext context) => Center(child: Padding(
-    padding: const EdgeInsets.all(28),
-    child: Column(mainAxisSize: MainAxisSize.min, children: [
-      Icon(icon, size: 58, color: const Color(0xFFB99AFF)),
-      const SizedBox(height: 16),
-      Text(title, style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
-      const SizedBox(height: 8),
-      Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60)),
-    ]),
-  ));
-}
-
- 
 class _NexsusAvatar extends StatelessWidget {
   const _NexsusAvatar({this.size = 56});
   final double size;
