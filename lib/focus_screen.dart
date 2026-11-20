@@ -117,10 +117,10 @@ class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
           ]),
         ])),
         const SizedBox(height: 25),
-        Wrap(spacing: 8, children: _presets.map((v) => ChoiceChip(label: Text('$v мин'), selected: _minutes == v, onSelected: (_) => _select(v), selectedColor: const Color(0xFF7652B8), backgroundColor: const Color(0xFF202039), labelStyle: TextStyle(color: _minutes == v ? Colors.white : Colors.white70))).toList()),
+        Wrap(spacing: 8, children: _presets.map((v) => ChoiceChip(label: Text('$v мин'), selected: _minutes == v, onSelected: (_) => _select(v), selectedColor: const Color(0xFFB7A2F6), backgroundColor: const Color(0xFF22252A), labelStyle: TextStyle(color: _minutes == v ? Colors.white : Colors.white70))).toList()),
         const SizedBox(height: 22),
         Row(children: [
-          Expanded(child: FilledButton.icon(onPressed: _running ? _pause : _start, icon: Icon(_running ? Icons.pause_rounded : Icons.play_arrow_rounded), label: Text(_running ? AppText.tx('Пауза', 'Pause') : AppText.tx('Начать', 'Start')), style: FilledButton.styleFrom(backgroundColor: const Color(0xFF7652B8), padding: const EdgeInsets.symmetric(vertical: 14)))),
+          Expanded(child: FilledButton.icon(onPressed: _running ? _pause : _start, icon: Icon(_running ? Icons.pause_rounded : Icons.play_arrow_rounded), label: Text(_running ? AppText.tx('Пауза', 'Pause') : AppText.tx('Начать', 'Start')), style: FilledButton.styleFrom(backgroundColor: const Color(0xFFB7A2F6), padding: const EdgeInsets.symmetric(vertical: 14)))),
           const SizedBox(width: 10),
           IconButton.filledTonal(onPressed: _reset, icon: const Icon(Icons.refresh_rounded), tooltip: AppText.tx('Сбросить', 'Reset')),
         ]),
