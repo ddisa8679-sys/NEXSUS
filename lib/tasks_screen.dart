@@ -189,7 +189,7 @@ class _TasksScreenState extends State<TasksScreen> {
           final priority = priorityValue == 'Низкий' ? AppText.tx('Низкий', 'Low') : priorityValue == 'Высокий' ? AppText.tx('Высокий', 'High') : AppText.tx('Обычный', 'Normal');
           final dueLabel = due == null ? '' : AppText.tx('Срок: ', 'Due: ') + due.day.toString().padLeft(2,'0') + '.' + due.month.toString().padLeft(2,'0') + '.' + due.year.toString() + ' · ' + TimeOfDay.fromDateTime(due).format(context);
           return Container(margin: const EdgeInsets.only(bottom: 9), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9), decoration: BoxDecoration(color: const Color(0xFF1A1C20), borderRadius: BorderRadius.circular(16), border: Border.all(color: late ? const Color(0x88E36C75) : Colors.white10)), child: Row(children: [
-            Checkbox(value: done, onChanged: (v) => _toggle(i, v ?? false), activeColor: const Color(0xFF7652B8)),
+            Checkbox(value: done, onChanged: (v) => _toggle(i, v ?? false), activeColor: const Color(0xFFB7A2F6)),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(task['title'] as String? ?? AppText.tx('Без названия', 'Untitled'), style: TextStyle(fontWeight: FontWeight.w600, decoration: done ? TextDecoration.lineThrough : null, color: done ? Colors.white54 : Colors.white)),
               const SizedBox(height: 4),
