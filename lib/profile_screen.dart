@@ -33,9 +33,8 @@ class ProfileScreen extends StatelessWidget {
                 width: 64, height: 64,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [settings.accent, const Color(0xFF292B31)]),
-                  border: Border.all(color: const Color(0xFFB7A2F6), width: 1.5),
-                  boxShadow: [BoxShadow(color: settings.accent.withValues(alpha: .28), blurRadius: 18)],
+                  color: const Color(0xFF292B31),
+                  border: Border.all(color: const Color(0xFF454850)),
                 ),
                 alignment: Alignment.center,
                 child: Text(nickname.trim().isEmpty ? 'N' : nickname.trim().substring(0, 1).toUpperCase(), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white)),
