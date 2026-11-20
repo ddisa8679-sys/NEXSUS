@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'auth_screen.dart';
 import 'jarvis_screen.dart';
 import 'notes_screen.dart';
@@ -96,17 +97,46 @@ class _HomeScreenState extends State<HomeScreen> {
   DateTime _now = DateTime.now();
   int _selected = 0;
   final Set<int> _visitedTabs = {0};
+  final TextEditingController _intentionController = TextEditingController();
+  static const String _intentionKey = 'nexsus_daily_intention_v1';
+  static const String _intentionDateKey = 'nexsus_daily_intention_date_v1';
+  bool _intentionSaved = false;
 
   @override
   void initState() {
     super.initState();
+    _loadDailyIntention();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() => _now = DateTime.now());
     });
   }
 
+  Future<void> _loadDailyIntention() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    if (!mounted) return;
+    if (prefs.getString(_intentionDateKey) == today) {
+      _intentionController.text = prefs.getString(_intentionKey) ?? '';
+      setState(() => _intentionSaved = _intentionController.text.isNotEmpty);
+    }
+  }
+
+  Future<void> _saveDailyIntention() async {
+    final value = _intentionController.text.trim();
+    if (value.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppText.tx('Запиши один главный приоритет на сегодня.', 'Write down one priority for today.'))));
+      return;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    await prefs.setString(_intentionKey, value);
+    await prefs.setString(_intentionDateKey, today);
+    if (mounted) setState(() => _intentionSaved = true);
+  }
+
   @override
   void dispose() {
+    _intentionController.dispose();
     _timer?.cancel();
     super.dispose();
   }
@@ -181,6 +211,36 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(AppText.tx('Пользователь NEXSUS', 'NEXSUS user'), style: TextStyle(color: Colors.white60, fontSize: 12)),
         ])),
         const Icon(Icons.verified, color: Color(0xFFFFD27A)),
+      ])),
+      const SizedBox(height: 18),
+      _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          const Icon(Icons.flag_outlined, color: Color(0xFFFFD27A)),
+          const SizedBox(width: 9),
+          Expanded(child: Text(AppText.tx('Главный приоритет на сегодня', 'Your main priority today'), style: const TextStyle(fontWeight: FontWeight.bold))),
+          if (_intentionSaved) const Icon(Icons.check_circle, color: Color(0xFF36D9A0), size: 18),
+        ]),
+        const SizedBox(height: 10),
+        TextField(
+          controller: _intentionController,
+          maxLines: 2,
+          minLines: 1,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: InputDecoration(
+            hintText: AppText.tx('Что действительно важно сегодня?', 'What really matters today?'),
+            filled: true,
+            fillColor: const Color(0xFF090D1B),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: BorderSide.none),
+          ),
+          onChanged: (_) { if (_intentionSaved) setState(() => _intentionSaved = false); },
+        ),
+        const SizedBox(height: 8),
+        Align(alignment: Alignment.centerRight, child: FilledButton.icon(
+          onPressed: _saveDailyIntention,
+          icon: const Icon(Icons.check_rounded, size: 18),
+          label: Text(AppText.tx('Сохранить фокус дня', 'Save today’s focus')),
+          style: FilledButton.styleFrom(backgroundColor: const Color(0xFF7652B8)),
+        )),
       ])),
       const SizedBox(height: 22),
       Text(AppText.tx('БЫСТРЫЙ ДОСТУП', 'QUICK ACCESS'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.4)),
