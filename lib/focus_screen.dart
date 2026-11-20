@@ -9,15 +9,16 @@ class FocusScreen extends StatefulWidget {
   State<FocusScreen> createState() => _FocusScreenState();
 }
 
-class _FocusScreenState extends State<FocusScreen> {
+class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
   static const _key = 'nexsus_focus_sessions_v1';
   static const _presets = [15, 25, 45, 60];
   int _minutes = 25, _remaining = 1500, _completed = 0;
   Timer? _timer;
   bool _running = false, _finished = false;
+  DateTime? _endsAt;
 
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() { super.initState(); WidgetsBinding.instance.addObserver(this); _load(); }
   Future<void> _load() async {
     final p = await SharedPreferences.getInstance();
     if (mounted) setState(() => _completed = p.getInt(_key) ?? 0);
@@ -32,14 +33,32 @@ class _FocusScreenState extends State<FocusScreen> {
   void _start() {
     if (_remaining <= 0) return;
     _timer?.cancel();
+    _endsAt = DateTime.now().add(Duration(seconds: _remaining));
     setState(() { _running = true; _finished = false; });
-    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (!mounted) { t.cancel(); return; }
-      if (_remaining <= 1) { t.cancel(); _complete(); }
-      else { setState(() => _remaining--); }
-    });
+    _timer = Timer.periodic(const Duration(seconds: 1), _refreshRemaining);
   }
-  void _pause() { _timer?.cancel(); setState(() => _running = false); }
+
+  void _refreshRemaining(Timer timer) {
+    if (!mounted) { timer.cancel(); return; }
+    final end = _endsAt;
+    if (end == null) return;
+    final seconds = end.difference(DateTime.now()).inSeconds;
+    if (seconds <= 0) { timer.cancel(); _complete(); }
+    else { setState(() => _remaining = seconds); }
+  }
+
+  void _pause() {
+    final end = _endsAt;
+    if (end != null) _remaining = end.difference(DateTime.now()).inSeconds.clamp(0, _minutes * 60);
+    _timer?.cancel();
+    _endsAt = null;
+    setState(() => _running = false);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _running) _refreshRemaining(_timer ?? Timer(const Duration(seconds: 0), (_) {}));
+  }
   Future<void> _complete() async {
     final p = await SharedPreferences.getInstance();
     final n = (p.getInt(_key) ?? 0) + 1;
@@ -48,10 +67,11 @@ class _FocusScreenState extends State<FocusScreen> {
   }
   void _reset() {
     _timer?.cancel();
+    _endsAt = null;
     setState(() { _running = false; _remaining = _minutes * 60; _finished = false; });
   }
   @override
-  void dispose() { _timer?.cancel(); super.dispose(); }
+  void dispose() { WidgetsBinding.instance.removeObserver(this); _timer?.cancel(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) => ListView(padding: const EdgeInsets.fromLTRB(22, 26, 22, 32), children: [
