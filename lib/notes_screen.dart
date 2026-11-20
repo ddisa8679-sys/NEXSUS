@@ -142,7 +142,7 @@ class _NotesScreenState extends State<NotesScreen> {
       children: [
         Text(AppText.tx('ЗАМЕТКИ', 'NOTES'), style: TextStyle(fontSize: 12, letterSpacing: 2, color: Color(0xFFFFD27A), fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
-        const Text(AppText.tx('Говори — NEXSUS запишет', 'Speak — NEXSUS will write it down'), style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
+        Text(AppText.tx('Говори — NEXSUS запишет', 'Speak — NEXSUS will write it down'), style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         Text(_status, style: const TextStyle(color: Colors.white60)),
         const SizedBox(height: 20),
@@ -192,7 +192,7 @@ class _NotesScreenState extends State<NotesScreen> {
                 child: FilledButton.icon(
                   onPressed: () => _addNote(),
                   icon: const Icon(Icons.save_outlined),
-                  label: const Text(AppText.tx('Сохранить заметку', 'Save note')),
+                  label: Text(AppText.tx('Сохранить заметку', 'Save note')),
                   style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8C642B), foregroundColor: Colors.white),
                 ),
               ),
@@ -202,7 +202,7 @@ class _NotesScreenState extends State<NotesScreen> {
         const SizedBox(height: 24),
         Row(
           children: [
-            const Expanded(child: Text(AppText.tx('МОИ ЗАМЕТКИ', 'MY NOTES'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.4))),
+            Expanded(child: Text(AppText.tx('МОИ ЗАМЕТКИ', 'MY NOTES'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.4))),
             Text('${_notes.length}', style: const TextStyle(color: Color(0xFFFFD27A))),
           ],
         ),
