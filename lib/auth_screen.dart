@@ -217,17 +217,24 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  InputDecoration _decoration(String label, IconData icon) => InputDecoration(
-    labelText: label,
-    prefixIcon: Icon(icon, color: const Color(0xFFB99AFF)),
-    filled: true,
-    fillColor: NexsusTheme.surfaceRaised,
-    border: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: BorderSide.none),
-    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(13),
-      borderSide: const BorderSide(color: Color(0xFF393C43))),
-    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(13),
-      borderSide: BorderSide(color: violet)),
-  );
+  InputDecoration _decoration(String label, IconData icon) {
+    final violet = Theme.of(context).colorScheme.primary;
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: violet),
+      filled: true,
+      fillColor: NexsusTheme.surfaceRaised,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: BorderSide.none),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(13),
+        borderSide: const BorderSide(color: Color(0xFF393C43)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(13),
+        borderSide: BorderSide(color: violet),
+      ),
+    );
+  }
 
   void _forgot() {
     showDialog<void>(context: context, builder: (context) => AlertDialog(
