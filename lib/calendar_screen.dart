@@ -192,13 +192,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
       builder: (dialogContext) => StatefulBuilder(builder: (context, refresh) => AlertDialog(
         title: Text(AppText.tx('Новое событие', 'New event')),
         content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(controller: title, autofocus: true, decoration: const InputDecoration(labelText: AppText.tx('Название события', 'Event title'))),
+          TextField(controller: title, autofocus: true, decoration: InputDecoration(labelText: AppText.tx('Название события', 'Event title'))),
           TextField(controller: details, decoration: const InputDecoration(labelText: AppText.tx('Заметка (необязательно)', 'Note (optional)'))),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: kind,
             decoration: const InputDecoration(labelText: AppText.tx('Категория', 'Category')),
-            items: const ['День рождения', 'Праздник', 'Годовщина', 'Работа', 'Личное', AppText.tx('Важная дата', 'Important date')]
+            items: ['День рождения', 'Праздник', 'Годовщина', 'Работа', 'Личное', AppText.tx('Важная дата', 'Important date')]
                 .map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
             onChanged: (v) { if (v != null) refresh(() => kind = v); },
           ),
@@ -219,12 +219,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
             value: yearly,
             onChanged: (v) => refresh(() => yearly = v ?? false),
             title: Text(AppText.tx('Повторять каждый год', 'Repeat every year')),
-            subtitle: const Text(AppText.tx('Для дней рождения и ежегодных праздников', 'For birthdays and annual holidays')),
+            subtitle: Text(AppText.tx('Для дней рождения и ежегодных праздников', 'For birthdays and annual holidays')),
           ),
-          const Text(AppText.tx('Напоминания придут в 09:00 за день до события и в день события.', 'Reminders arrive at 09:00 one day before and on the event day.'), style: TextStyle(fontSize: 12, color: Colors.white60)),
+          Text(AppText.tx('Напоминания придут в 09:00 за день до события и в день события.', 'Reminders arrive at 09:00 one day before and on the event day.'), style: TextStyle(fontSize: 12, color: Colors.white60)),
         ])),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text(AppText.tx('Отмена', 'Cancel'))),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(AppText.tx('Отмена', 'Cancel'))),
           FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text(AppText.tx('Сохранить', 'Save'))),
         ],
       )),
@@ -323,7 +323,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ]),
           ),
           const SizedBox(height: 22),
-          Row(children: [const Expanded(child: Text(AppText.tx('БЛИЖАЙШИЕ СОБЫТИЯ', 'UPCOMING EVENTS'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2))), Text('${upcoming.length}', style: const TextStyle(color: Color(0xFFFFD27A)))]),
+          Row(children: [Expanded(child: Text(AppText.tx('БЛИЖАЙШИЕ СОБЫТИЯ', 'UPCOMING EVENTS'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2))), Text('${upcoming.length}', style: const TextStyle(color: Color(0xFFFFD27A)))]),
           const SizedBox(height: 10),
           if (upcoming.isEmpty)
             const Padding(padding: EdgeInsets.symmetric(vertical: 28), child: Column(children: [
