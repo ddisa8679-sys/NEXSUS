@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'app_settings.dart';
+import 'app_text.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
@@ -22,9 +23,9 @@ class ProfileScreen extends StatelessWidget {
       builder: (context, _) => ListView(
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 30),
         children: [
-          const Text('ЛИЧНЫЙ КАБИНЕТ', style: TextStyle(fontSize: 11, letterSpacing: 2, color: Color(0xFFFFD27A), fontWeight: FontWeight.bold)),
+          Text(AppText.tx('ЛИЧНЫЙ КАБИНЕТ', 'PERSONAL SPACE'), style: TextStyle(fontSize: 11, letterSpacing: 2, color: Color(0xFFFFD27A), fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          const Text('Профиль и настройки', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+          const Text(AppText.tx('Профиль и настройки', 'Profile & settings'), style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
           const SizedBox(height: 20),
           _section(
             child: Row(children: [
@@ -33,34 +34,34 @@ class ProfileScreen extends StatelessWidget {
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(nickname, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                Text(user?.email ?? 'Локальный профиль', style: const TextStyle(fontSize: 12, color: Colors.white60)),
+                Text(user?.email ?? AppText.tx('Локальный профиль', 'Local profile'), style: const TextStyle(fontSize: 12, color: Colors.white60)),
               ])),
               Icon(Icons.verified_user_outlined, color: settings.accent),
             ]),
           ),
           const SizedBox(height: 22),
-          const Text('ЯЗЫК И ИНТЕРФЕЙС', style: TextStyle(fontSize: 11, letterSpacing: 1.6, fontWeight: FontWeight.bold)),
+          const Text(AppText.tx('ЯЗЫК И ИНТЕРФЕЙС', 'LANGUAGE & INTERFACE'), style: TextStyle(fontSize: 11, letterSpacing: 1.6, fontWeight: FontWeight.bold)),
           const SizedBox(height: 10),
           _section(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Язык приложения', style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text(AppText.tx('Язык приложения', 'App language'), style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               value: settings.language,
               decoration: const InputDecoration(border: OutlineInputBorder(), prefixIcon: Icon(Icons.language)),
               items: const [
-                DropdownMenuItem(value: 'ru', child: Text('Русский')),
+                DropdownMenuItem(value: 'ru', child: Text(AppText.tx('Русский', 'Russian'))),
                 DropdownMenuItem(value: 'en', child: Text('English')),
               ],
               onChanged: (value) { if (value != null) settings.setLanguage(value); },
             ),
             const SizedBox(height: 6),
-            const Text('Язык системных элементов и календарных диалогов изменится сразу. Перевод остальных экранов будет расширяться в следующих обновлениях.', style: TextStyle(color: Colors.white54, fontSize: 11)),
+            const Text(AppText.tx('Язык системных элементов и календарных диалогов изменится сразу. Перевод остальных экранов будет расширяться в следующих обновлениях.', 'System elements and calendar dialogs update immediately. The rest of the app is being localized.'), style: TextStyle(color: Colors.white54, fontSize: 11)),
           ])),
           const SizedBox(height: 22),
-          const Text('ВНЕШНИЙ ВИД', style: TextStyle(fontSize: 11, letterSpacing: 1.6, fontWeight: FontWeight.bold)),
+          const Text(AppText.tx('ВНЕШНИЙ ВИД', 'APPEARANCE'), style: TextStyle(fontSize: 11, letterSpacing: 1.6, fontWeight: FontWeight.bold)),
           const SizedBox(height: 10),
           _section(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Цвет интерфейса', style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text(AppText.tx('Цвет интерфейса', 'Accent color'), style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
             Wrap(spacing: 12, runSpacing: 12, children: [
               _colorChoice('violet', const Color(0xFF8050FF), settings),
@@ -72,21 +73,21 @@ class ProfileScreen extends StatelessWidget {
               _colorChoice('crimson', const Color(0xFFE34D65), settings),
             ]),
             const Divider(height: 28, color: Colors.white12),
-            const Text('Фон приложения', style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text(AppText.tx('Фон приложения', 'App background'), style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
-            _choice(context, 'midnight', 'Тёмно-фиолетовый', settings.background, (v) => settings.setBackground(v)),
-            _choice(context, 'black', 'Чёрный OLED', settings.background, (v) => settings.setBackground(v)),
-            _choice(context, 'navy', 'Тёмно-синий', settings.background, (v) => settings.setBackground(v)),
-            _choice(context, 'forest', 'Тёмно-зелёный', settings.background, (v) => settings.setBackground(v)),
+            _choice(context, 'midnight', AppText.tx('Тёмно-фиолетовый', 'Midnight violet'), settings.background, (v) => settings.setBackground(v)),
+            _choice(context, 'black', AppText.tx('Чёрный OLED', 'OLED black'), settings.background, (v) => settings.setBackground(v)),
+            _choice(context, 'navy', AppText.tx('Тёмно-синий', 'Deep navy'), settings.background, (v) => settings.setBackground(v)),
+            _choice(context, 'forest', AppText.tx('Тёмно-зелёный', 'Deep forest'), settings.background, (v) => settings.setBackground(v)),
             const Divider(height: 28, color: Colors.white12),
-            const Text('Шрифт', style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text(AppText.tx('Шрифт', 'Font'), style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
-            _choice(context, 'system', 'Стандартный', settings.font, (v) => settings.setFont(v)),
-            _choice(context, 'serif', 'С засечками', settings.font, (v) => settings.setFont(v)),
-            _choice(context, 'mono', 'Моноширинный', settings.font, (v) => settings.setFont(v)),
+            _choice(context, 'system', AppText.tx('Стандартный', 'System'), settings.font, (v) => settings.setFont(v)),
+            _choice(context, 'serif', AppText.tx('С засечками', 'Serif'), settings.font, (v) => settings.setFont(v)),
+            _choice(context, 'mono', AppText.tx('Моноширинный', 'Monospace'), settings.font, (v) => settings.setFont(v)),
             const Divider(height: 28, color: Colors.white12),
             Row(children: [
-              const Expanded(child: Text('Размер текста', style: TextStyle(fontWeight: FontWeight.w600))),
+              const Expanded(child: Text(AppText.tx('Размер текста', 'Text size'), style: TextStyle(fontWeight: FontWeight.w600))),
               Text('${(settings.fontScale * 100).round()}%', style: TextStyle(color: settings.accent, fontWeight: FontWeight.bold)),
             ]),
             Slider(
@@ -99,14 +100,14 @@ class ProfileScreen extends StatelessWidget {
             ),
           ])),
           const SizedBox(height: 22),
-          const Text('АККАУНТ', style: TextStyle(fontSize: 11, letterSpacing: 1.6, fontWeight: FontWeight.bold)),
+          const Text(AppText.tx('АККАУНТ', 'ACCOUNT'), style: TextStyle(fontSize: 11, letterSpacing: 1.6, fontWeight: FontWeight.bold)),
           const SizedBox(height: 10),
           _section(child: Column(children: [
-            _accountRow(Icons.mail_outline, 'Электронная почта', user?.email ?? 'Не подключена'),
+            _accountRow(Icons.mail_outline, AppText.tx('Электронная почта', 'Email address'), user?.email ?? AppText.tx('Не подключена', 'Not connected')),
             const Divider(height: 22, color: Colors.white12),
-            _accountRow(Icons.security_outlined, 'Безопасность', user?.emailVerified == true ? 'Почта подтверждена' : 'Почта не подтверждена'),
+            _accountRow(Icons.security_outlined, AppText.tx('Безопасность', 'Security'), user?.emailVerified == true ? AppText.tx('Почта подтверждена', 'Email verified') : AppText.tx('Почта не подтверждена', 'Email not verified')),
             const Divider(height: 22, color: Colors.white12),
-            _accountRow(Icons.info_outline, 'Версия приложения', 'NEXSUS 0.1.0'),
+            _accountRow(Icons.info_outline, AppText.tx('Версия приложения', 'App version'), 'NEXSUS 0.1.0'),
           ])),
           const SizedBox(height: 14),
           OutlinedButton.icon(
@@ -114,22 +115,22 @@ class ProfileScreen extends StatelessWidget {
               final confirmed = await showDialog<bool>(
                 context: context,
                 builder: (dialogContext) => AlertDialog(
-                  title: const Text('Выйти из аккаунта?'),
-                  content: const Text('Для следующего входа потребуется снова ввести почту и пароль.'),
+                  title: const Text(AppText.tx('Выйти из аккаунта?', 'Sign out of your account?')),
+                  content: const Text(AppText.tx('Для следующего входа потребуется снова ввести почту и пароль.', 'You will need to enter your email and password next time.')),
                   actions: [
-                    TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Отмена')),
-                    FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Выйти')),
+                    TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text(AppText.tx('Отмена', 'Cancel'))),
+                    FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text(AppText.tx('Выйти', 'Sign out'))),
                   ],
                 ),
               );
               if (confirmed == true) await onSignOut();
             },
             icon: const Icon(Icons.logout_rounded),
-            label: const Text('Выйти из аккаунта'),
+            label: const Text(AppText.tx('Выйти из аккаунта', 'Sign out')),
             style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFFFF858D), side: const BorderSide(color: Color(0x66FF858D)), padding: const EdgeInsets.symmetric(vertical: 14)),
           ),
           const SizedBox(height: 14),
-          Text('Настройки внешнего вида сохраняются на этом устройстве.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white.withValues(alpha: .48), fontSize: 11)),
+          Text(AppText.tx('Настройки внешнего вида сохраняются на этом устройстве.', 'Appearance settings are saved on this device.'), textAlign: TextAlign.center, style: TextStyle(color: Colors.white.withValues(alpha: .48), fontSize: 11)),
         ],
       ),
     );
