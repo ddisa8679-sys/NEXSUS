@@ -167,7 +167,7 @@ class _TasksScreenState extends State<TasksScreen> {
         const SizedBox(height: 7),
         Text(AppText.tx('Сводка на ', 'Summary for ') + dateLabel, style: const TextStyle(color: Colors.white60)),
         const SizedBox(height: 18),
-        Container(padding: const EdgeInsets.all(17), decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), gradient: const LinearGradient(colors: [Color(0xFF282044), Color(0xFF111629)]), border: Border.all(color: const Color(0x66B99AFF))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(padding: const EdgeInsets.all(17), decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: const Color(0xFF1A1C20), border: Border.all(color: const Color(0xFF303238))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [Icon(Icons.wb_twilight, color: Color(0xFFB7A2F6)), SizedBox(width: 9), Text(AppText.tx('ЕЖЕДНЕВНАЯ СВОДКА', 'DAILY SUMMARY'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1))]),
           const SizedBox(height: 14),
           Row(children: [
