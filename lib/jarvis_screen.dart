@@ -37,7 +37,6 @@ class _JarvisScreenState extends State<JarvisScreen> {
   bool _busy = false;
   bool _modelReady = false;
   bool _downloading = false;
-  bool _speaking = false;
   double _downloadProgress = 0;
   String _status = AppText.tx('Подготовка локального ИИ…', 'Preparing local AI…');
   String? _error;
@@ -338,15 +337,12 @@ class _JarvisScreenState extends State<JarvisScreen> {
       setState(() => _messages.add({'role': 'assistant', 'content': reply}));
       await _saveConversation();
       _scrollToBottom();
-      _speaking = true;
       await _tts.speak(reply);
-      _speaking = false;
     } catch (e) {
       if (mounted) setState(() => _error = 'Ошибка локальной модели: $e');
     } finally {
       if (mounted) setState(() {
         _busy = false;
-        _speaking = false;
       });
     }
   }
