@@ -12,6 +12,7 @@ class FocusScreen extends StatefulWidget {
 
 class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
   static const _key = 'nexsus_focus_sessions_v1';
+  static const _endKey = 'nexsus_focus_ends_at_v1';
   static const _presets = [15, 25, 45, 60];
   int _minutes = 25, _remaining = 1500, _completed = 0;
   Timer? _timer;
@@ -22,7 +23,21 @@ class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
   void initState() { super.initState(); WidgetsBinding.instance.addObserver(this); _load(); }
   Future<void> _load() async {
     final p = await SharedPreferences.getInstance();
-    if (mounted) setState(() => _completed = p.getInt(_key) ?? 0);
+    if (!mounted) return;
+    final savedEnd = p.getInt(_endKey);
+    final end = savedEnd == null ? null : DateTime.fromMillisecondsSinceEpoch(savedEnd);
+    final count = p.getInt(_key) ?? 0;
+    if (end != null && end.isAfter(DateTime.now())) {
+      setState(() { _completed = count; _endsAt = end; _remaining = end.difference(DateTime.now()).inSeconds; _running = true; });
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) => _refreshRemaining());
+    } else if (end != null) {
+      final updated = count + 1;
+      await p.setInt(_key, updated);
+      await p.remove(_endKey);
+      if (mounted) setState(() { _completed = updated; _remaining = 0; _finished = true; });
+    } else {
+      setState(() => _completed = count);
+    }
   }
   String get _clock => '${(_remaining ~/ 60).toString().padLeft(2, '0')}:${(_remaining % 60).toString().padLeft(2, '0')}';
   double get _progress => 1 - _remaining / (_minutes * 60);
@@ -35,6 +50,7 @@ class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
     if (_remaining <= 0) return;
     _timer?.cancel();
     _endsAt = DateTime.now().add(Duration(seconds: _remaining));
+    SharedPreferences.getInstance().then((p) => p.setInt(_endKey, _endsAt!.millisecondsSinceEpoch));
     setState(() { _running = true; _finished = false; });
     _timer = Timer.periodic(const Duration(seconds: 1), (_) => _refreshRemaining());
   }
@@ -53,6 +69,7 @@ class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
     if (end != null) _remaining = end.difference(DateTime.now()).inSeconds.clamp(0, _minutes * 60).toInt();
     _timer?.cancel();
     _endsAt = null;
+    SharedPreferences.getInstance().then((p) => p.remove(_endKey));
     setState(() => _running = false);
   }
 
@@ -64,11 +81,13 @@ class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
     final p = await SharedPreferences.getInstance();
     final n = (p.getInt(_key) ?? 0) + 1;
     await p.setInt(_key, n);
+    await p.remove(_endKey);
     if (mounted) setState(() { _completed = n; _remaining = 0; _running = false; _finished = true; _endsAt = null; });
   }
   void _reset() {
     _timer?.cancel();
     _endsAt = null;
+    SharedPreferences.getInstance().then((p) => p.remove(_endKey));
     setState(() { _running = false; _remaining = _minutes * 60; _finished = false; });
   }
   @override
