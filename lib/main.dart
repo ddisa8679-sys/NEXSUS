@@ -183,7 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
         const Icon(Icons.verified, color: Color(0xFFFFD27A)),
       ])),
       const SizedBox(height: 22),
-      const Text(AppText.tx('БЫСТРЫЙ ДОСТУП', 'QUICK ACCESS'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.4)),
+      Text(AppText.tx('БЫСТРЫЙ ДОСТУП', 'QUICK ACCESS'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.4)),
       const SizedBox(height: 12),
       GridView.count(
         crossAxisCount: 2, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
