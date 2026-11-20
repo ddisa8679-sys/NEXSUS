@@ -65,7 +65,7 @@ class ProfileScreen extends StatelessWidget {
               onChanged: (value) { if (value != null) settings.setLanguage(value); },
             ),
             const SizedBox(height: 6),
-            Text(AppText.tx('Язык системных элементов и календарных диалогов изменится сразу. Перевод остальных экранов будет расширяться в следующих обновлениях.', 'System elements and calendar dialogs update immediately. The rest of the app is being localized.'), style: TextStyle(color: Colors.white54, fontSize: 11)),
+            Text(AppText.tx('Выбери язык интерфейса. Настройка сохраняется автоматически.', 'Choose your interface language. Your choice is saved automatically.'), style: TextStyle(color: Colors.white54, fontSize: 11)),
           ])),
           const SizedBox(height: 22),
           Text(AppText.tx('ВНЕШНИЙ ВИД', 'APPEARANCE'), style: TextStyle(fontSize: 11, letterSpacing: 1.6, fontWeight: FontWeight.bold)),
