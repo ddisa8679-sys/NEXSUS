@@ -193,7 +193,7 @@ class _NotesScreenState extends State<NotesScreen> {
                   onPressed: () => _addNote(),
                   icon: const Icon(Icons.save_outlined),
                   label: Text(AppText.tx('Сохранить заметку', 'Save note')),
-                  style: FilledButton.styleFrom(backgroundColor: const Color(0xFFB7A2F6), foregroundColor: Colors.white),
+                  style: FilledButton.styleFrom(backgroundColor: const Color(0xFFB7A2F6), foregroundColor: const Color(0xFF17131F)),
                 ),
               ),
             ],
