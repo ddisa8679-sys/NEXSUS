@@ -319,7 +319,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     height: 38,
                     margin: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
-                      color: isToday ? const Color(0xFF7650D8) : Colors.transparent,
+                      color: isToday ? const Color(0xFFB7A2F6) : Colors.transparent,
                       borderRadius: BorderRadius.circular(10),
                       border: hasEvent && !isToday ? Border.all(color: const Color(0xFFB7A2F6)) : null,
                     ),
