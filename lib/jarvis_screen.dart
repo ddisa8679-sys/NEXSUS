@@ -160,45 +160,81 @@ class _JarvisScreenState extends State<JarvisScreen> {
       _downloading = true;
       _error = null;
       _status = 'Проверяю файл модели…';
+      _downloadProgress = 0;
     });
-    final file = await _modelFile();
+
+    final model = await _modelFile();
+    final partial = File('${model.path}.part');
+    final client = http.Client();
     try {
-      if (!await file.exists() || await file.length() < _expectedModelBytes * 0.95) {
-        if (await file.exists()) await file.delete();
-        setState(() => _status = 'Загружаю ИИ-модель (около 484 МБ)…');
-        final client = http.Client();
-        try {
-          final request = http.Request('GET', Uri.parse(_modelUrl));
-          final response = await client.send(request);
-          if (response.statusCode != 200) {
-            throw Exception('Сервер модели ответил: ${response.statusCode}');
-          }
-          final total = response.contentLength ?? _expectedModelBytes;
-          var received = 0;
-          final sink = file.openWrite();
-          try {
-            await for (final chunk in response.stream) {
-              sink.add(chunk);
-              received += chunk.length;
-              if (mounted) {
-                setState(() => _downloadProgress = (received / total).clamp(0.0, 1.0));
-              }
-            }
-            await sink.flush();
-          } finally {
-            await sink.close();
-          }
-          if (received < _expectedModelBytes * 0.95) {
-            throw Exception('Загрузка модели завершилась не полностью.');
-          }
-        } finally {
-          client.close();
+      if (await model.exists() && await model.length() >= _expectedModelBytes * 0.95) {
+        setState(() => _status = 'Проверяю установленную модель…');
+      } else {
+        if (await model.exists()) await model.delete();
+        var received = await partial.exists() ? await partial.length() : 0;
+        if (received >= _expectedModelBytes) {
+          await partial.delete();
+          received = 0;
         }
+
+        setState(() => _status = received > 0
+            ? 'Продолжаю загрузку с ${(received / 1000000).toStringAsFixed(0)} МБ…'
+            : 'Загружаю ИИ-модель (около 484 МБ)…');
+
+        final request = http.Request('GET', Uri.parse(_modelUrl))
+          ..headers['User-Agent'] = 'NEXSUS-Android/1.0';
+        if (received > 0) request.headers['Range'] = 'bytes=$received-';
+
+        final response = await client.send(request);
+        if (received > 0 && response.statusCode == 200) {
+          // The host ignored Range: restart cleanly rather than corrupting the file.
+          await partial.delete();
+          received = 0;
+        } else if (received > 0 && response.statusCode != 206) {
+          throw Exception('Сервер не поддержал продолжение загрузки (HTTP ${response.statusCode}).');
+        } else if (received == 0 && response.statusCode != 200 && response.statusCode != 206) {
+          throw Exception('Сервер модели ответил: HTTP ${response.statusCode}.');
+        }
+
+        final total = response.contentLength == null
+            ? _expectedModelBytes
+            : response.contentLength! + received;
+        final sink = partial.openWrite(mode: received > 0 ? FileMode.append : FileMode.write);
+        try {
+          var downloaded = received;
+          await for (final chunk in response.stream) {
+            sink.add(chunk);
+            downloaded += chunk.length;
+            if (mounted) {
+              setState(() {
+                _downloadProgress = (downloaded / total).clamp(0.0, 1.0);
+                _status = 'Загружаю ИИ-модель… ${(downloaded / 1000000).toStringAsFixed(0)} МБ';
+              });
+            }
+          }
+          await sink.flush();
+        } finally {
+          await sink.close();
+        }
+
+        final finalBytes = await partial.length();
+        if (finalBytes < _expectedModelBytes * 0.95) {
+          throw Exception('Файл получен не полностью: ${(finalBytes / 1000000).toStringAsFixed(1)} МБ. При следующей попытке загрузка продолжится.');
+        }
+        final header = await partial.open(mode: FileMode.read);
+        final magic = await header.read(4);
+        await header.close();
+        if (String.fromCharCodes(magic) != 'GGUF') {
+          throw Exception('Сервер вернул не GGUF-модель. Частичный файл сохранён для диагностики.');
+        }
+        if (await model.exists()) await model.delete();
+        await partial.rename(model.path);
       }
+
       if (!mounted) return;
-      setState(() => _status = 'Запускаю модель на планшете…');
+      setState(() => _status = 'Запускаю модель на устройстве…');
       await _llama.loadModel(
-        modelPath: file.path,
+        modelPath: model.path,
         threads: 4,
         contextSize: 2048,
       );
@@ -207,6 +243,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
         _modelReady = true;
         _status = 'Локальный ИИ готов — интернет для ответов не нужен';
         _error = null;
+        _downloadProgress = 1;
       });
       if (!_messages.any((m) => m['role'] == 'user')) {
         _messages.add({
@@ -217,16 +254,14 @@ class _JarvisScreenState extends State<JarvisScreen> {
       await _saveConversation();
       _scrollToBottom();
     } catch (e) {
-      if (await file.exists() && await file.length() < _expectedModelBytes * 0.95) {
-        await file.delete();
-      }
       if (mounted) {
         setState(() {
           _status = 'Модель пока не установлена';
-          _error = 'Не удалось подготовить локальный ИИ: $e. Проверь интернет и нажми «Повторить».';
+          _error = 'Не удалось подготовить локальный ИИ: $e';
         });
       }
     } finally {
+      client.close();
       if (mounted) setState(() => _downloading = false);
     }
   }
