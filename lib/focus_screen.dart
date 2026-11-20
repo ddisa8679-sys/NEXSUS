@@ -105,8 +105,8 @@ class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
     const SizedBox(height: 30),
     Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(28),
-      gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF292044), Color(0xFF101426)]),
-      border: Border.all(color: const Color(0x66B99AFF))),
+      color: const Color(0xFF1A1C20),
+      border: Border.all(color: const Color(0xFF303238))),
       child: Column(children: [
         SizedBox(width: 218, height: 218, child: Stack(alignment: Alignment.center, children: [
           SizedBox.expand(child: CircularProgressIndicator(value: _progress, strokeWidth: 7, backgroundColor: Colors.white12, color: const Color(0xFFB7A2F6), strokeCap: StrokeCap.round)),
