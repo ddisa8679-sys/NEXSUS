@@ -16,7 +16,7 @@ class AppSettings extends ChangeNotifier {
   String language = 'ru';
 
   Color get accent => const {
-    'violet': Color(0xFF8050FF),
+    'violet': Color(0xFFB7A2F6),
     'blue': Color(0xFF398BFF),
     'emerald': Color(0xFF24B889),
     'rose': Color(0xFFE45D9A),
