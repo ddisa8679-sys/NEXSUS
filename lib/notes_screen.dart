@@ -150,8 +150,8 @@ class _NotesScreenState extends State<NotesScreen> {
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(22),
-            gradient: const LinearGradient(colors: [Color(0xFF1A1C20), Color(0xFF101426)]),
-            border: Border.all(color: const Color(0x66FFD27A)),
+            color: const Color(0xFF1A1C20),
+            border: Border.all(color: const Color(0xFF303238)),
           ),
           child: Column(
             children: [
@@ -182,7 +182,7 @@ class _NotesScreenState extends State<NotesScreen> {
                 decoration: InputDecoration(
                   hintText: AppText.tx('Или напиши заметку здесь…', 'Or type a note here…'),
                   filled: true,
-                  fillColor: const Color(0xFF090D1B),
+                  fillColor: const Color(0xFF22252A),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
                 ),
               ),
@@ -193,7 +193,7 @@ class _NotesScreenState extends State<NotesScreen> {
                   onPressed: () => _addNote(),
                   icon: const Icon(Icons.save_outlined),
                   label: Text(AppText.tx('Сохранить заметку', 'Save note')),
-                  style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8C642B), foregroundColor: Colors.white),
+                  style: FilledButton.styleFrom(backgroundColor: const Color(0xFFB7A2F6), foregroundColor: Colors.white),
                 ),
               ),
             ],
@@ -219,7 +219,7 @@ class _NotesScreenState extends State<NotesScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFF1A1C20),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0x332D2C4A)),
+              border: Border.all(color: const Color(0xFF303238)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
