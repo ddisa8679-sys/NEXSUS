@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'app_text.dart';
 
 class NotesScreen extends StatefulWidget {
   const NotesScreen({super.key});
@@ -18,7 +19,7 @@ class _NotesScreenState extends State<NotesScreen> {
   bool _listening = false;
   bool _voicePressed = false;
   String _voiceDraft = '';
-  String _status = 'Зажми микрофон, говори и отпусти — заметка сохранится';
+  String _status = AppText.tx('Зажми микрофон, говори и отпусти — заметка сохранится', 'Hold the microphone, speak, then release to save a note');
 
   @override
   void initState() {
@@ -60,7 +61,7 @@ class _NotesScreenState extends State<NotesScreen> {
         if (!mounted) return;
         setState(() {
           _listening = false;
-          _status = 'Не удалось распознать речь. Проверь микрофон и попробуй ещё раз.';
+          _status = AppText.tx('Не удалось распознать речь. Проверь микрофон и попробуй ещё раз.', 'Speech not recognized. Check the microphone and try again.');
         });
       },
     );
@@ -68,18 +69,18 @@ class _NotesScreenState extends State<NotesScreen> {
     if (!_voicePressed || !mounted) return;
     if (!_ready) {
       setState(() {
-        _status = 'Голосовой ввод недоступен. Проверь разрешение микрофона и службу распознавания речи Android.';
+        _status = AppText.tx('Голосовой ввод недоступен. Проверь разрешение микрофона и службу распознавания речи Android.', 'Voice input is unavailable. Check microphone permission and Android speech recognition.');
       });
       return;
     }
 
     setState(() {
       _listening = true;
-      _status = 'Слушаю… отпусти кнопку, чтобы сохранить заметку';
+      _status = AppText.tx('Слушаю… отпусти кнопку, чтобы сохранить заметку', 'Listening… release to save your note');
     });
 
     await _speech.listen(
-      localeId: 'ru_RU',
+      localeId: AppText.language == 'en' ? 'en_US' : 'ru_RU',
       listenFor: const Duration(minutes: 2),
       pauseFor: const Duration(seconds: 30),
       partialResults: true,
@@ -107,7 +108,7 @@ class _NotesScreenState extends State<NotesScreen> {
     if (words.isNotEmpty) {
       await _addNote(words);
     } else {
-      setState(() => _status = 'Речь не распознана. Зажми кнопку и попробуй ещё раз.');
+      setState(() => _status = AppText.tx('Речь не распознана. Зажми кнопку и попробуй ещё раз.', 'No speech detected. Hold the button and try again.'));
     }
   }
 
@@ -117,7 +118,7 @@ class _NotesScreenState extends State<NotesScreen> {
     setState(() {
       _notes.insert(0, value);
       _text.clear();
-      _status = 'Заметка сохранена';
+      _status = AppText.tx('Заметка сохранена', 'Note saved');
     });
     await _saveNotes();
   }
@@ -139,9 +140,9 @@ class _NotesScreenState extends State<NotesScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
       children: [
-        const Text('ЗАМЕТКИ', style: TextStyle(fontSize: 12, letterSpacing: 2, color: Color(0xFFFFD27A), fontWeight: FontWeight.bold)),
+        Text(AppText.tx('ЗАМЕТКИ', 'NOTES'), style: TextStyle(fontSize: 12, letterSpacing: 2, color: Color(0xFFFFD27A), fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
-        const Text('Говори — NEXSUS запишет', style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
+        const Text(AppText.tx('Говори — NEXSUS запишет', 'Speak — NEXSUS will write it down'), style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         Text(_status, style: const TextStyle(color: Colors.white60)),
         const SizedBox(height: 20),
@@ -172,14 +173,14 @@ class _NotesScreenState extends State<NotesScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              Text(_listening ? 'ОТПУСТИ, ЧТОБЫ СОХРАНИТЬ' : 'ЗАЖМИ И ГОВОРИ', style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+              Text(_listening ? AppText.tx('ОТПУСТИ, ЧТОБЫ СОХРАНИТЬ', 'RELEASE TO SAVE') : AppText.tx('ЗАЖМИ И ГОВОРИ', 'HOLD AND SPEAK'), style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
               const SizedBox(height: 18),
               TextField(
                 controller: _text,
                 minLines: 2,
                 maxLines: 5,
                 decoration: InputDecoration(
-                  hintText: 'Или напиши заметку здесь…',
+                  hintText: AppText.tx('Или напиши заметку здесь…', 'Or type a note here…'),
                   filled: true,
                   fillColor: const Color(0xFF090D1B),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
@@ -191,7 +192,7 @@ class _NotesScreenState extends State<NotesScreen> {
                 child: FilledButton.icon(
                   onPressed: () => _addNote(),
                   icon: const Icon(Icons.save_outlined),
-                  label: const Text('Сохранить заметку'),
+                  label: const Text(AppText.tx('Сохранить заметку', 'Save note')),
                   style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8C642B), foregroundColor: Colors.white),
                 ),
               ),
@@ -201,7 +202,7 @@ class _NotesScreenState extends State<NotesScreen> {
         const SizedBox(height: 24),
         Row(
           children: [
-            const Expanded(child: Text('МОИ ЗАМЕТКИ', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.4))),
+            const Expanded(child: Text(AppText.tx('МОИ ЗАМЕТКИ', 'MY NOTES'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.4))),
             Text('${_notes.length}', style: const TextStyle(color: Color(0xFFFFD27A))),
           ],
         ),
@@ -227,7 +228,7 @@ class _NotesScreenState extends State<NotesScreen> {
                 const SizedBox(width: 12),
                 Expanded(child: Text(_notes[index])),
                 IconButton(
-                  tooltip: 'Удалить заметку',
+                  tooltip: AppText.tx('Удалить заметку', 'Delete note'),
                   onPressed: () => _deleteNote(index),
                   icon: const Icon(Icons.delete_outline, color: Colors.white54),
                 ),
