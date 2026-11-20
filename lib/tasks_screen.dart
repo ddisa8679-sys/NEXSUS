@@ -1,6 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:timezone/data/latest_all.dart' as tzdata;
+import 'package:timezone/timezone.dart' as tz;
 
 class TasksScreen extends StatefulWidget {
   const TasksScreen({super.key});
@@ -11,10 +15,47 @@ class TasksScreen extends StatefulWidget {
 class _TasksScreenState extends State<TasksScreen> {
   static const _storageKey = 'nexsus_tasks_v1';
   final List<Map<String, dynamic>> _tasks = [];
+  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  bool _notificationsReady = false;
+  bool _exactAlarmsAllowed = false;
   bool _loaded = false;
 
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() { super.initState(); _initializeNotifications(); _load(); }
+
+  Future<void> _initializeNotifications() async {
+    try {
+      tzdata.initializeTimeZones();
+      final zone = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(zone));
+      await _notifications.initialize(const InitializationSettings(android: AndroidInitializationSettings('@mipmap/ic_launcher')));
+      final android = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      _notificationsReady = await android?.requestNotificationsPermission() ?? true;
+      if (_notificationsReady) {
+        _exactAlarmsAllowed = await android?.requestExactAlarmsPermission() ?? false;
+        await android?.createNotificationChannel(const AndroidNotificationChannel('nexsus_task_reminders', 'Напоминания о задачах', description: 'Напоминания о задачах за день до срока', importance: Importance.max));
+        for (final task in _tasks) { await _scheduleReminder(task); }
+      }
+    } catch (_) { _notificationsReady = false; }
+  }
+
+  int _notificationId(String id) => (int.tryParse(id) ?? id.hashCode).abs() % 2000000000;
+
+  Future<void> _scheduleReminder(Map<String, dynamic> task) async {
+    if (!_notificationsReady || task['done'] == true) return;
+    final due = _dateOf(task);
+    if (due == null) return;
+    final reminder = due.subtract(const Duration(days: 1));
+    if (!reminder.isAfter(DateTime.now())) return;
+    await _notifications.zonedSchedule(
+      _notificationId(task['id'] as String), 'Завтра: ${task['title']}',
+      'Срок задачи наступит завтра. Проверь свой план в NEXSUS.',
+      tz.TZDateTime.from(reminder, tz.local),
+      const NotificationDetails(android: AndroidNotificationDetails('nexsus_task_reminders', 'Напоминания о задачах', channelDescription: 'Напоминания о задачах за день до срока', importance: Importance.max, priority: Priority.high, category: AndroidNotificationCategory.reminder)),
+      androidScheduleMode: _exactAlarmsAllowed ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,
+      payload: task['id'] as String,
+    );
+  }
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -26,6 +67,7 @@ class _TasksScreenState extends State<TasksScreen> {
       } catch (_) {}
     }
     if (mounted) setState(() => _loaded = true);
+    if (_notificationsReady) { for (final task in _tasks) { await _scheduleReminder(task); } }
   }
 
   Future<void> _save() async {
@@ -48,6 +90,7 @@ class _TasksScreenState extends State<TasksScreen> {
     final controller = TextEditingController();
     String priority = 'Обычный';
     DateTime? due;
+    TimeOfDay dueTime = const TimeOfDay(hour: 9, minute: 0);
     final result = await showDialog<bool>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (context, refresh) => AlertDialog(
       title: const Text('Новая задача'),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -63,6 +106,13 @@ class _TasksScreenState extends State<TasksScreen> {
           final picked = await showDatePicker(context: context, initialDate: due ?? DateTime.now(), firstDate: DateTime.now().subtract(const Duration(days: 365)), lastDate: DateTime.now().add(const Duration(days: 3650)));
           if (picked != null) refresh(() => due = picked);
         }, icon: const Icon(Icons.calendar_today_outlined), label: Text(due == null ? 'Добавить срок' : due!.day.toString().padLeft(2,'0') + '.' + due!.month.toString().padLeft(2,'0') + '.' + due!.year.toString())),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(onPressed: () async {
+          final picked = await showTimePicker(context: context, initialTime: dueTime);
+          if (picked != null) refresh(() => dueTime = picked);
+        }, icon: const Icon(Icons.access_time), label: Text('Время: ${dueTime.format(context)}')),
+        const SizedBox(height: 6),
+        const Text('Напоминание придёт за день до срока в выбранное время.', style: TextStyle(fontSize: 11, color: Colors.white54)),
       ]),
       actions: [
         TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Отмена')),
@@ -70,19 +120,25 @@ class _TasksScreenState extends State<TasksScreen> {
       ],
     )));
     if (result == true && controller.text.trim().isNotEmpty) {
-      setState(() => _tasks.insert(0, {'id': DateTime.now().microsecondsSinceEpoch.toString(), 'title': controller.text.trim(), 'priority': priority, 'due': due?.toIso8601String(), 'done': false, 'created': DateTime.now().toIso8601String()}));
+      final dueAt = due == null ? null : DateTime(due!.year, due!.month, due!.day, dueTime.hour, dueTime.minute);
+      final task = {'id': DateTime.now().microsecondsSinceEpoch.toString(), 'title': controller.text.trim(), 'priority': priority, 'due': dueAt?.toIso8601String(), 'done': false, 'created': DateTime.now().toIso8601String()};
+      setState(() => _tasks.insert(0, task));
       await _save();
+      await _scheduleReminder(task);
     }
     controller.dispose();
   }
 
   Future<void> _toggle(int index, bool value) async {
     setState(() => _tasks[index]['done'] = value);
+    if (value) await _notifications.cancel(_notificationId(_tasks[index]['id'] as String)); else await _scheduleReminder(_tasks[index]);
     await _save();
   }
 
   Future<void> _delete(int index) async {
-    setState(() => _tasks.removeAt(index));
+    final removed = _tasks.removeAt(index);
+    await _notifications.cancel(_notificationId(removed['id'] as String));
+    setState(() {});
     await _save();
   }
 
@@ -129,7 +185,7 @@ class _TasksScreenState extends State<TasksScreen> {
         else ...sorted.map((i) {
           final task = _tasks[i], due = _dateOf(task), done = task['done'] == true, late = _overdue(task);
           final priority = task['priority'] as String? ?? 'Обычный';
-          final dueLabel = due == null ? '' : 'Срок: ' + due.day.toString().padLeft(2,'0') + '.' + due.month.toString().padLeft(2,'0') + '.' + due.year.toString();
+          final dueLabel = due == null ? '' : 'Срок: ' + due.day.toString().padLeft(2,'0') + '.' + due.month.toString().padLeft(2,'0') + '.' + due.year.toString() + ' · ' + TimeOfDay.fromDateTime(due).format(context);
           return Container(margin: const EdgeInsets.only(bottom: 9), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9), decoration: BoxDecoration(color: const Color(0xFF15182C), borderRadius: BorderRadius.circular(16), border: Border.all(color: late ? const Color(0x88E36C75) : Colors.white10)), child: Row(children: [
             Checkbox(value: done, onChanged: (v) => _toggle(i, v ?? false), activeColor: const Color(0xFF7652B8)),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
