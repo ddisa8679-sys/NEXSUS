@@ -116,8 +116,8 @@ class _TasksScreenState extends State<TasksScreen> {
         Text(AppText.tx('Напоминание придёт за день до срока в выбранное время.', 'A reminder will arrive one day before the due date at the selected time.'), style: TextStyle(fontSize: 11, color: Colors.white54)),
       ]),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text(AppText.tx('Отмена', 'Cancel'))),
-        FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text(AppText.tx('Добавить', 'Add'))),
+        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(AppText.tx('Отмена', 'Cancel'))),
+        FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: Text(AppText.tx('Добавить', 'Add'))),
       ],
     )));
     if (result == true && controller.text.trim().isNotEmpty) {
@@ -159,11 +159,11 @@ class _TasksScreenState extends State<TasksScreen> {
     });
     final dateLabel = now.day.toString().padLeft(2,'0') + '.' + now.month.toString().padLeft(2,'0') + '.' + now.year.toString();
     return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(onPressed: _addTask, icon: const Icon(Icons.add), label: Text(AppText.tx(AppText.tx('Новая задача', 'New task'), 'New task'))),
+      floatingActionButton: FloatingActionButton.extended(onPressed: _addTask, icon: const Icon(Icons.add), label: Text(AppText.tx('Новая задача', 'New task'))),
       body: SafeArea(child: !_loaded ? const Center(child: CircularProgressIndicator()) : ListView(padding: const EdgeInsets.fromLTRB(20, 22, 20, 100), children: [
         const Text('NEXSUS / SMART TASKS', style: TextStyle(color: Color(0xFFFFD27A), fontSize: 11, letterSpacing: 2, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
-        const Text(AppText.tx('Твой план действий', 'Your action plan'), style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
+        Text(AppText.tx('Твой план действий', 'Your action plan'), style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
         const SizedBox(height: 7),
         Text(AppText.tx('Сводка на ', 'Summary for ') + dateLabel, style: const TextStyle(color: Colors.white60)),
         const SizedBox(height: 18),
