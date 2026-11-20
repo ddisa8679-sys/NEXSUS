@@ -154,6 +154,17 @@ class _JarvisScreenState extends State<JarvisScreen> {
     return File('${directory.path}/qwen3-0.6b-q4_k_m.gguf');
   }
 
+  Future<bool> _hasGgufHeader(File file) async {
+    try {
+      final reader = await file.open(mode: FileMode.read);
+      final magic = await reader.read(4);
+      await reader.close();
+      return String.fromCharCodes(magic) == 'GGUF';
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> _prepareModel() async {
     if (_downloading || _modelReady) return;
     setState(() {
@@ -167,7 +178,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
     final partial = File('${model.path}.part');
     final client = http.Client();
     try {
-      if (await model.exists() && await model.length() >= _expectedModelBytes * 0.95) {
+      if (await model.exists() && await model.length() >= _expectedModelBytes * 0.95 && await _hasGgufHeader(model)) {
         setState(() => _status = AppText.tx('Проверяю установленную модель…', 'Verifying installed model…'));
       } else {
         if (await model.exists()) await model.delete();
