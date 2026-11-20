@@ -71,9 +71,6 @@ class _AuthScreenState extends State<AuthScreen> {
           password: _password.text,
           nickname: _nickname.text,
         );
-        final nickname = credential.user?.displayName?.trim().isNotEmpty == true
-            ? credential.user!.displayName!.trim()
-            : _nickname.text.trim();
         if (mounted && credential.user != null) _openUser(credential.user!);
       } else {
         final credential = await _auth.signIn(email: _email.text, password: _password.text);
