@@ -201,12 +201,12 @@ class _HomeScreenState extends State<HomeScreen> {
           SizedBox(height: 4),
           Text(AppText.tx('Пользователь NEXSUS', 'NEXSUS user'), style: TextStyle(color: Colors.white60, fontSize: 12)),
         ])),
-        const Icon(Icons.verified, color: Color(0xFFFFD27A)),
+        Icon(Icons.verified, color: widget.settings.accent),
       ])),
       const SizedBox(height: 18),
       _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          const Icon(Icons.flag_outlined, color: Color(0xFFFFD27A)),
+          const Icon(Icons.flag_outlined, color: Color(0xFFB7A2F6)),
           const SizedBox(width: 9),
           Expanded(child: Text(AppText.tx('Главный приоритет на сегодня', 'Your main priority today'), style: const TextStyle(fontWeight: FontWeight.bold))),
           if (_intentionSaved) const Icon(Icons.check_circle, color: Color(0xFF36D9A0), size: 18),
@@ -220,7 +220,7 @@ class _HomeScreenState extends State<HomeScreen> {
           decoration: InputDecoration(
             hintText: AppText.tx('Что действительно важно сегодня?', 'What really matters today?'),
             filled: true,
-            fillColor: const Color(0xFF090D1B),
+            fillColor: const Color(0xFF22252A),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: BorderSide.none),
           ),
           onChanged: (_) { if (_intentionSaved) setState(() => _intentionSaved = false); },
