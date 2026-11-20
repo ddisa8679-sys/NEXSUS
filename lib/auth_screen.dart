@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'auth_service.dart';
@@ -20,24 +21,35 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _obscure = true;
   bool _busy = false;
   AuthService get _auth => AuthService();
+  StreamSubscription<User?>? _authSubscription;
+  bool _navigated = false;
+
+  void _openUser(User user) {
+    if (!mounted || _navigated) return;
+    _navigated = true;
+    final nickname = user.displayName?.trim().isNotEmpty == true
+        ? user.displayName!.trim()
+        : (user.email?.split('@').first ?? 'NEXSUS');
+    widget.onAuthenticated(context, nickname);
+  }
 
   @override
   void initState() {
     super.initState();
     if (widget.firebaseReady) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final user = FirebaseAuth.instance.currentUser;
-        if (!mounted || user == null) return;
-        final nickname = user.displayName?.trim().isNotEmpty == true
-            ? user.displayName!.trim()
-            : (user.email?.split('@').first ?? 'NEXSUS');
-        widget.onAuthenticated(context, nickname);
+      _authSubscription = _auth.authStateChanges.listen((user) {
+        if (user != null) _openUser(user);
       });
+      final user = _auth.currentUser;
+      if (user != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _openUser(user));
+      }
     }
   }
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     _nickname.dispose();
     _email.dispose();
     _password.dispose();
@@ -61,13 +73,13 @@ class _AuthScreenState extends State<AuthScreen> {
         final nickname = credential.user?.displayName?.trim().isNotEmpty == true
             ? credential.user!.displayName!.trim()
             : _nickname.text.trim();
-        if (mounted) widget.onAuthenticated(context, nickname);
+        if (mounted) { _navigated = true; widget.onAuthenticated(context, nickname); }
       } else {
         final credential = await _auth.signIn(email: _email.text, password: _password.text);
         final nickname = credential.user?.displayName?.trim().isNotEmpty == true
             ? credential.user!.displayName!.trim()
             : (_email.text.trim().split('@').first);
-        if (mounted) widget.onAuthenticated(context, nickname);
+        if (mounted) { _navigated = true; widget.onAuthenticated(context, nickname); }
       }
     } on FirebaseAuthException catch (e) {
       _message(_authError(e.code));
