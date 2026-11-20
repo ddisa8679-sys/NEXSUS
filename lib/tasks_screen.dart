@@ -93,11 +93,11 @@ class _TasksScreenState extends State<TasksScreen> {
     DateTime? due;
     TimeOfDay dueTime = const TimeOfDay(hour: 9, minute: 0);
     final result = await showDialog<bool>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (context, refresh) => AlertDialog(
-      title: Text(AppText.tx(AppText.tx('Новая задача', 'New task'), 'New task')),
+      title: Text(AppText.tx('Новая задача', 'New task')),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
-        TextField(controller: controller, autofocus: true, textCapitalization: TextCapitalization.sentences, decoration: const InputDecoration(hintText: AppText.tx('Что нужно сделать?', 'What needs to be done?'))),
+        TextField(controller: controller, autofocus: true, textCapitalization: TextCapitalization.sentences, decoration: InputDecoration(hintText: AppText.tx('Что нужно сделать?', 'What needs to be done?'))),
         const SizedBox(height: 12),
-        DropdownButtonFormField<String>(value: priority, decoration: const InputDecoration(labelText: AppText.tx('Приоритет', 'Priority')), items: const [
+        DropdownButtonFormField<String>(value: priority, decoration: InputDecoration(labelText: AppText.tx('Приоритет', 'Priority')), items: [
           DropdownMenuItem(value: 'Низкий', child: Text('Низкий')),
           DropdownMenuItem(value: 'Обычный', child: Text('Обычный')),
           DropdownMenuItem(value: 'Высокий', child: Text('Высокий')),
@@ -113,7 +113,7 @@ class _TasksScreenState extends State<TasksScreen> {
           if (picked != null) refresh(() => dueTime = picked);
         }, icon: const Icon(Icons.access_time), label: Text('Время: ${dueTime.format(context)}')),
         const SizedBox(height: 6),
-        const Text(AppText.tx('Напоминание придёт за день до срока в выбранное время.', 'A reminder will arrive one day before the due date at the selected time.'), style: TextStyle(fontSize: 11, color: Colors.white54)),
+        Text(AppText.tx('Напоминание придёт за день до срока в выбранное время.', 'A reminder will arrive one day before the due date at the selected time.'), style: TextStyle(fontSize: 11, color: Colors.white54)),
       ]),
       actions: [
         TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text(AppText.tx('Отмена', 'Cancel'))),
@@ -168,7 +168,7 @@ class _TasksScreenState extends State<TasksScreen> {
         Text(AppText.tx('Сводка на ', 'Summary for ') + dateLabel, style: const TextStyle(color: Colors.white60)),
         const SizedBox(height: 18),
         Container(padding: const EdgeInsets.all(17), decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), gradient: const LinearGradient(colors: [Color(0xFF282044), Color(0xFF111629)]), border: Border.all(color: const Color(0x66B99AFF))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Row(children: [Icon(Icons.wb_twilight, color: Color(0xFFFFD27A)), SizedBox(width: 9), Text(AppText.tx('ЕЖЕДНЕВНАЯ СВОДКА', 'DAILY SUMMARY'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1))]),
+          Row(children: [Icon(Icons.wb_twilight, color: Color(0xFFFFD27A)), SizedBox(width: 9), Text(AppText.tx('ЕЖЕДНЕВНАЯ СВОДКА', 'DAILY SUMMARY'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1))]),
           const SizedBox(height: 14),
           Row(children: [
             _metric(AppText.tx('Активные', 'Active'), active.toString()),
@@ -180,9 +180,9 @@ class _TasksScreenState extends State<TasksScreen> {
           Text(active == 0 ? AppText.tx('Свободный день: активных задач пока нет.', 'A clear day: no active tasks yet.') : overdue > 0 ? AppText.tx('Есть задачи с истёкшим сроком. Начни с них.', 'Some tasks are overdue. Start with those.') : today > 0 ? AppText.tx('На сегодня запланировано ', 'Scheduled for today: ') + today.toString() + AppText.tx(' задач. Выбери одну и начни.', ' tasks. Pick one and begin.') : AppText.tx('План есть. Добавь срок задачам, чтобы видеть приоритет дня.', 'Your plan is ready. Add due dates to prioritize your day.'), style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.4)),
         ])),
         const SizedBox(height: 22),
-        Row(children: [const Expanded(child: Text(AppText.tx('СПИСОК ЗАДАЧ', 'TASK LIST'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.3))), Text(active.toString() + AppText.tx(' осталось', ' remaining'), style: const TextStyle(color: Color(0xFFFFD27A), fontSize: 12))]),
+        Row(children: [Expanded(child: Text(AppText.tx('СПИСОК ЗАДАЧ', 'TASK LIST'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.3))), Text(active.toString() + AppText.tx(' осталось', ' remaining'), style: const TextStyle(color: Color(0xFFFFD27A), fontSize: 12))]),
         const SizedBox(height: 10),
-        if (_tasks.isEmpty) const Padding(padding: EdgeInsets.symmetric(vertical: 35), child: Column(children: [Icon(Icons.checklist_rounded, size: 48, color: Color(0xFFB99AFF)), SizedBox(height: 12), Text(AppText.tx('Пока задач нет', 'No tasks yet'), style: TextStyle(fontWeight: FontWeight.bold)), SizedBox(height: 5), Text(AppText.tx('Добавь первую задачу — сводка начнёт собираться автоматически.', 'Add your first task to build an automatic daily summary.'), textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 12))]))
+        if (_tasks.isEmpty) Padding(padding: EdgeInsets.symmetric(vertical: 35), child: Column(children: [Icon(Icons.checklist_rounded, size: 48, color: Color(0xFFB99AFF)), SizedBox(height: 12), Text(AppText.tx('Пока задач нет', 'No tasks yet'), style: TextStyle(fontWeight: FontWeight.bold)), SizedBox(height: 5), Text(AppText.tx('Добавь первую задачу — сводка начнёт собираться автоматически.', 'Add your first task to build an automatic daily summary.'), textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 12))]))
         else ...sorted.map((i) {
           final task = _tasks[i], due = _dateOf(task), done = task['done'] == true, late = _overdue(task);
           final priority = task['priority'] as String? ?? 'Обычный';
