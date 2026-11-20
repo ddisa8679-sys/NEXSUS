@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'app_text.dart';
 
 class FocusScreen extends StatefulWidget {
   const FocusScreen({super.key});
@@ -75,11 +76,11 @@ class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) => ListView(padding: const EdgeInsets.fromLTRB(22, 26, 22, 32), children: [
-    const Text('NEXSUS / РЕЖИМ ФОКУСА', style: TextStyle(color: Color(0xFFFFD27A), fontSize: 11, letterSpacing: 2, fontWeight: FontWeight.bold)),
+    Text(AppText.tx('NEXSUS / РЕЖИМ ФОКУСА', 'NEXSUS / FOCUS MODE'), style: TextStyle(color: Color(0xFFFFD27A), fontSize: 11, letterSpacing: 2, fontWeight: FontWeight.bold)),
     const SizedBox(height: 10),
-    const Text('Время для главного', style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
+    const Text(AppText.tx('Время для главного', 'Time for what matters'), style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
     const SizedBox(height: 8),
-    const Text('Убери лишнее. Выбери одну задачу. Остальное подождёт.', style: TextStyle(color: Colors.white60)),
+    const Text(AppText.tx('Убери лишнее. Выбери одну задачу. Остальное подождёт.', 'Clear the noise. Choose one task. The rest can wait.'), style: TextStyle(color: Colors.white60)),
     const SizedBox(height: 30),
     Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(28),
@@ -91,16 +92,16 @@ class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
           Column(mainAxisSize: MainAxisSize.min, children: [
             Text(_clock, style: const TextStyle(fontSize: 49, fontWeight: FontWeight.w300, fontFeatures: [FontFeature.tabularFigures()])),
             const SizedBox(height: 5),
-            Text(_finished ? 'СЕССИЯ ЗАВЕРШЕНА' : _running ? 'СОСРЕДОТОЧЬСЯ' : 'МИНУТЫ ДЛЯ СЕБЯ', style: const TextStyle(fontSize: 9, letterSpacing: 1.5, color: Colors.white60)),
+            Text(_finished ? AppText.tx('СЕССИЯ ЗАВЕРШЕНА', 'SESSION COMPLETE') : _running ? AppText.tx('СОСРЕДОТОЧЬСЯ', 'STAY FOCUSED') : AppText.tx('МИНУТЫ ДЛЯ СЕБЯ', 'TIME FOR YOURSELF'), style: const TextStyle(fontSize: 9, letterSpacing: 1.5, color: Colors.white60)),
           ]),
         ])),
         const SizedBox(height: 25),
         Wrap(spacing: 8, children: _presets.map((v) => ChoiceChip(label: Text('$v мин'), selected: _minutes == v, onSelected: (_) => _select(v), selectedColor: const Color(0xFF7652B8), backgroundColor: const Color(0xFF202039), labelStyle: TextStyle(color: _minutes == v ? Colors.white : Colors.white70))).toList()),
         const SizedBox(height: 22),
         Row(children: [
-          Expanded(child: FilledButton.icon(onPressed: _running ? _pause : _start, icon: Icon(_running ? Icons.pause_rounded : Icons.play_arrow_rounded), label: Text(_running ? 'Пауза' : 'Начать'), style: FilledButton.styleFrom(backgroundColor: const Color(0xFF7652B8), padding: const EdgeInsets.symmetric(vertical: 14)))),
+          Expanded(child: FilledButton.icon(onPressed: _running ? _pause : _start, icon: Icon(_running ? Icons.pause_rounded : Icons.play_arrow_rounded), label: Text(_running ? AppText.tx('Пауза', 'Pause') : AppText.tx('Начать', 'Start')), style: FilledButton.styleFrom(backgroundColor: const Color(0xFF7652B8), padding: const EdgeInsets.symmetric(vertical: 14)))),
           const SizedBox(width: 10),
-          IconButton.filledTonal(onPressed: _reset, icon: const Icon(Icons.refresh_rounded), tooltip: 'Сбросить'),
+          IconButton.filledTonal(onPressed: _reset, icon: const Icon(Icons.refresh_rounded), tooltip: AppText.tx('Сбросить', 'Reset')),
         ]),
       ]),
     ),
@@ -109,12 +110,12 @@ class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
       const Icon(Icons.local_fire_department_outlined, color: Color(0xFFFFD27A), size: 30),
       const SizedBox(width: 13),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Завершённые сессии', style: TextStyle(color: Colors.white60, fontSize: 12)),
+        const Text(AppText.tx('Завершённые сессии', 'Completed sessions'), style: TextStyle(color: Colors.white60, fontSize: 12)),
         const SizedBox(height: 4), Text('$_completed', style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
       ])),
-      const Text('Каждая минута —\nшаг вперёд', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 11)),
+      const Text(AppText.tx('Каждая минута —\nшаг вперёд', 'Every minute is\na step forward'), textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 11)),
     ])),
     const SizedBox(height: 15),
-    const Text('Совет: выбери одну задачу и не переключайся между приложениями до конца сессии.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 12, height: 1.5)),
+    const Text(AppText.tx('Совет: выбери одну задачу и не переключайся между приложениями до конца сессии.', 'Tip: choose one task and avoid switching apps until the session ends.'), textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 12, height: 1.5)),
   ]);
 }
