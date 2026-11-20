@@ -9,6 +9,7 @@ import 'package:llama_flutter_android/llama_flutter_android.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'app_text.dart';
 
 class JarvisScreen extends StatefulWidget {
   const JarvisScreen({super.key, required this.nickname});
@@ -38,7 +39,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
   bool _downloading = false;
   bool _speaking = false;
   double _downloadProgress = 0;
-  String _status = 'Подготовка локального ИИ…';
+  String _status = AppText.tx('Подготовка локального ИИ…', 'Preparing local AI…');
   String? _error;
 
   @override
@@ -46,7 +47,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
     super.initState();
     _messages.add({
       'role': 'assistant',
-      'content': 'Привет, ${widget.nickname}! Я Джарвис. Сейчас подготовлю локальный ИИ. После загрузки модели смогу отвечать без интернета.',
+      'content': AppText.tx('Привет, ${widget.nickname}! Я Джарвис. Сейчас подготовлю локальный ИИ. После загрузки модели смогу отвечать без интернета.', 'Hello, ${widget.nickname}! I am Jarvis. I am preparing the local AI. Once the model is downloaded, I can answer offline.'),
     });
     _loadConversation();
     _initializeVoice();
@@ -87,7 +88,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
       await prefs.setString(_historyKey, jsonEncode(saved.take(60).toList()));
     } catch (_) {
       if (mounted) {
-        setState(() => _error = 'Не удалось сохранить историю диалога на устройстве.');
+        setState(() => _error = AppText.tx('Не удалось сохранить историю диалога на устройстве.', 'Could not save chat history on this device.'));
       }
     }
   }
@@ -97,16 +98,16 @@ class _JarvisScreenState extends State<JarvisScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Очистить историю?'),
-        content: const Text('Все сохранённые сообщения Джарвиса на этом устройстве будут удалены.'),
+        title: Text(AppText.tx('Очистить историю?', 'Clear conversation?')),
+        content: const Text(AppText.tx('Все сохранённые сообщения Джарвиса на этом устройстве будут удалены.', 'All saved Jarvis messages on this device will be deleted.')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Отмена'),
+            child: Text(AppText.tx('Отмена', 'Cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Очистить'),
+            child: const Text(AppText.tx('Очистить', 'Clear')),
           ),
         ],
       ),
@@ -120,7 +121,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
         ..clear()
         ..add({
           'role': 'assistant',
-          'content': 'История очищена. Начнём новый разговор?',
+          'content': AppText.tx('История очищена. Начнём новый разговор?', 'History cleared. Shall we start a new conversation?'),
         });
       _error = null;
     });
@@ -136,16 +137,16 @@ class _JarvisScreenState extends State<JarvisScreen> {
         onError: (_) {
           if (mounted) setState(() {
             _listening = false;
-            _error = 'Не удалось распознать речь. Можно написать сообщение ниже.';
+            _error = AppText.tx('Не удалось распознать речь. Можно написать сообщение ниже.', 'Speech not recognized. You can type a message below.');
           });
         },
       );
-      await _tts.setLanguage('ru-RU');
+      await _tts.setLanguage(AppText.language == 'en' ? 'en-US' : 'ru-RU');
       await _tts.setSpeechRate(0.48);
       await _tts.setPitch(0.95);
       if (mounted) setState(() {});
     } catch (_) {
-      if (mounted) setState(() => _error = 'Голосовые функции недоступны на этом устройстве.');
+      if (mounted) setState(() => _error = AppText.tx('Голосовые функции недоступны на этом устройстве.', 'Voice features are unavailable on this device.'));
     }
   }
 
@@ -159,7 +160,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
     setState(() {
       _downloading = true;
       _error = null;
-      _status = 'Проверяю файл модели…';
+      _status = AppText.tx('Проверяю файл модели…', 'Checking model file…');
       _downloadProgress = 0;
     });
 
@@ -168,7 +169,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
     final client = http.Client();
     try {
       if (await model.exists() && await model.length() >= _expectedModelBytes * 0.95) {
-        setState(() => _status = 'Проверяю установленную модель…');
+        setState(() => _status = AppText.tx('Проверяю установленную модель…', 'Verifying installed model…'));
       } else {
         if (await model.exists()) await model.delete();
         var received = await partial.exists() ? await partial.length() : 0;
@@ -179,7 +180,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
 
         setState(() => _status = received > 0
             ? 'Продолжаю загрузку с ${(received / 1000000).toStringAsFixed(0)} МБ…'
-            : 'Загружаю ИИ-модель (около 484 МБ)…');
+            : AppText.tx('Загружаю ИИ-модель (около 484 МБ)…', 'Downloading AI model (about 484 MB)…'));
 
         final request = http.Request('GET', Uri.parse(_modelUrl))
           ..headers['User-Agent'] = 'NEXSUS-Android/1.0';
@@ -232,7 +233,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
       }
 
       if (!mounted) return;
-      setState(() => _status = 'Запускаю модель на устройстве…');
+      setState(() => _status = AppText.tx('Запускаю модель на устройстве…', 'Starting the model on this device…'));
       await _llama.loadModel(
         modelPath: model.path,
         threads: 4,
@@ -241,7 +242,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
       if (!mounted) return;
       setState(() {
         _modelReady = true;
-        _status = 'Локальный ИИ готов — интернет для ответов не нужен';
+        _status = AppText.tx('Локальный ИИ готов — интернет для ответов не нужен', 'Local AI is ready — no internet needed for answers');
         _error = null;
         _downloadProgress = 1;
       });
@@ -256,7 +257,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _status = 'Модель пока не установлена';
+          _status = AppText.tx('Модель пока не установлена', 'Model is not installed yet');
           _error = 'Не удалось подготовить локальный ИИ: $e';
         });
       }
@@ -274,13 +275,13 @@ class _JarvisScreenState extends State<JarvisScreen> {
     }
     if (!_speechReady) await _initializeVoice();
     if (!_speechReady) {
-      setState(() => _error = 'Распознавание речи недоступно. Напиши сообщение.');
+      setState(() => _error = AppText.tx('Распознавание речи недоступно. Напиши сообщение.', 'Speech recognition is unavailable. Type a message instead.'));
       return;
     }
     setState(() => _error = null);
     await _tts.stop();
     await _speech.listen(
-      localeId: 'ru_RU',
+      localeId: AppText.language == 'en' ? 'en_US' : 'ru_RU',
       listenFor: const Duration(seconds: 30),
       pauseFor: const Duration(seconds: 3),
       onResult: (result) {
@@ -298,7 +299,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
     final text = (voiceText ?? _input.text).trim();
     if (text.isEmpty || _busy) return;
     if (!_modelReady) {
-      setState(() => _error = 'Сначала нужно загрузить локальную модель.');
+      setState(() => _error = AppText.tx('Сначала нужно загрузить локальную модель.', 'Download the local model first.'));
       return;
     }
     _input.clear();
@@ -313,7 +314,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
       final chat = <ChatMessage>[
         ChatMessage(
           role: 'system',
-          content: 'Ты Джарвис — дружелюбный персональный ИИ-помощник. Всегда отвечай на русском языке, понятно и по делу. Не выдумывай факты. Если не знаешь — честно скажи. Отвечай кратко, если пользователь не просит подробностей.',
+          content: AppText.tx('Ты Джарвис — дружелюбный персональный ИИ-помощник. Всегда отвечай на русском языке, понятно и по делу. Не выдумывай факты. Если не знаешь — честно скажи. Отвечай кратко, если пользователь не просит подробностей.', 'You are Jarvis, a friendly personal AI assistant. Always answer in English, clearly and directly. Do not invent facts. If you do not know, say so honestly. Be concise unless the user asks for detail.'),
         ),
         ..._messages.where((m) => m['role'] == 'user' || m['role'] == 'assistant')
             .toList()
@@ -387,18 +388,18 @@ class _JarvisScreenState extends State<JarvisScreen> {
             child: const Icon(Icons.graphic_eq, color: Colors.white),
           ),
           const SizedBox(width: 12),
-          const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('ДЖАРВИС', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: 2)),
-            Text('Локальный голосовой ИИ · память диалога', style: TextStyle(fontSize: 10, color: Colors.white60)),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(AppText.tx('ДЖАРВИС', 'JARVIS'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: 2)),
+            Text(AppText.tx('Локальный голосовой ИИ · память диалога', 'Local voice AI · conversation memory'), style: TextStyle(fontSize: 10, color: Colors.white60)),
           ])),
           IconButton(
-            tooltip: 'Очистить историю',
+            tooltip: AppText.tx('Очистить историю', 'Clear conversation'),
             onPressed: _busy ? null : _clearConversation,
             icon: const Icon(Icons.delete_sweep_outlined, color: Colors.white60),
           ),
           Icon(Icons.circle, size: 8, color: _modelReady ? const Color(0xFF36D9A0) : Colors.orangeAccent),
           const SizedBox(width: 6),
-          Text(_busy ? 'ДУМАЮ' : (_modelReady ? 'ГОТОВ' : 'ЗАГРУЗКА'),
+          Text(_busy ? AppText.tx('ДУМАЮ', 'THINKING') : (_modelReady ? AppText.tx('ГОТОВ', 'READY') : AppText.tx('ЗАГРУЗКА', 'DOWNLOADING')),
               style: const TextStyle(fontSize: 9, letterSpacing: 1, color: Colors.white60)),
         ]),
       ),
@@ -421,7 +422,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
                 child: TextButton.icon(
                   onPressed: _prepareModel,
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Повторить загрузку'),
+                  label: const Text(AppText.tx('Повторить загрузку', 'Retry download')),
                 ),
               ),
           ]),
@@ -469,7 +470,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
             iconSize: 27,
             color: _listening ? Colors.redAccent : const Color(0xFFB99AFF),
             icon: Icon(_listening ? Icons.stop_circle : Icons.mic),
-            tooltip: _listening ? 'Остановить запись' : 'Говорить',
+            tooltip: _listening ? AppText.tx('Остановить запись', 'Stop recording') : AppText.tx('Говорить', 'Speak'),
           ),
           Expanded(
             child: TextField(
@@ -480,7 +481,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
               textInputAction: TextInputAction.send,
               onSubmitted: (_) => _send(),
               decoration: InputDecoration(
-                hintText: _modelReady ? (_listening ? 'Слушаю тебя…' : 'Напиши Джарвису…') : 'Загружается ИИ-модель…',
+                hintText: _modelReady ? (_listening ? AppText.tx('Слушаю тебя…', 'Listening…') : AppText.tx('Напиши Джарвису…', 'Message Jarvis…')) : AppText.tx('Загружается ИИ-модель…', 'AI model is loading…'),
                 filled: true,
                 fillColor: const Color(0xFF171832),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
