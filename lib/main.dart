@@ -128,8 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _visitedTabs.contains(1) ? JarvisScreen(nickname: widget.nickname) : const SizedBox.shrink(),
       _visitedTabs.contains(2) ? const NotesScreen() : const SizedBox.shrink(),
       _visitedTabs.contains(3) ? const CalendarScreen() : const SizedBox.shrink(),
-      _visitedTabs.contains(4) ? _ClockPage(now: _now, date: _date) : const SizedBox.shrink(),
-      _visitedTabs.contains(5) ? ProfileScreen(nickname: widget.nickname, settings: widget.settings) : const SizedBox.shrink(),
+      _visitedTabs.contains(4) ? ProfileScreen(nickname: widget.nickname, settings: widget.settings) : const SizedBox.shrink(),
     ];
     return Scaffold(
       body: SafeArea(child: Column(children: [
@@ -145,7 +144,6 @@ class _HomeScreenState extends State<HomeScreen> {
             NavigationDestination(icon: Icon(Icons.graphic_eq), label: 'Джарвис'),
             NavigationDestination(icon: Icon(Icons.sticky_note_2_outlined), label: 'Заметки'),
             NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month), label: 'Календарь'),
-            NavigationDestination(icon: Icon(Icons.schedule), label: 'Часы'),
             NavigationDestination(icon: Icon(Icons.person_outline), label: 'Профиль'),
           ],
         ),
@@ -190,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           _action(Icons.mic, 'Джарвис', 'Голосовой помощник', 1),
           _action(Icons.note_alt_outlined, 'Заметки', 'Быстрые записи', 2),
-          _action(Icons.person_outline, 'Профиль', 'Личные данные и настройки', 5),
+          _action(Icons.person_outline, 'Профиль', 'Личные данные и настройки', 4),
           _action(Icons.calendar_month, 'Календарь', 'Дни рождения и события', 3),
           _action(Icons.center_focus_strong, 'Фокус', 'Таймер концентрации', 6),
           _action(Icons.checklist_rounded, 'Мои задачи', 'План и сводка дня', 7),
