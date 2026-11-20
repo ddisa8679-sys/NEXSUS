@@ -22,6 +22,21 @@ class _AuthScreenState extends State<AuthScreen> {
   AuthService get _auth => AuthService();
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.firebaseReady) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final user = FirebaseAuth.instance.currentUser;
+        if (!mounted || user == null) return;
+        final nickname = user.displayName?.trim().isNotEmpty == true
+            ? user.displayName!.trim()
+            : (user.email?.split('@').first ?? 'NEXSUS');
+        widget.onAuthenticated(context, nickname);
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _nickname.dispose();
     _email.dispose();
