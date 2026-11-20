@@ -99,7 +99,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(AppText.tx('Очистить историю?', 'Clear conversation?')),
-        content: const Text(AppText.tx('Все сохранённые сообщения Джарвиса на этом устройстве будут удалены.', 'All saved Jarvis messages on this device will be deleted.')),
+        content: Text(AppText.tx('Все сохранённые сообщения Джарвиса на этом устройстве будут удалены.', 'All saved Jarvis messages on this device will be deleted.')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
@@ -107,7 +107,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text(AppText.tx('Очистить', 'Clear')),
+            child: Text(AppText.tx('Очистить', 'Clear')),
           ),
         ],
       ),
@@ -422,7 +422,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
                 child: TextButton.icon(
                   onPressed: _prepareModel,
                   icon: const Icon(Icons.refresh),
-                  label: const Text(AppText.tx('Повторить загрузку', 'Retry download')),
+                  label: Text(AppText.tx('Повторить загрузку', 'Retry download')),
                 ),
               ),
           ]),
