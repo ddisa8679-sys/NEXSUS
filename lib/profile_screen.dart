@@ -7,10 +7,12 @@ class ProfileScreen extends StatelessWidget {
     super.key,
     required this.nickname,
     required this.settings,
+    required this.onSignOut,
   });
 
   final String nickname;
   final AppSettings settings;
+  final Future<void> Function() onSignOut;
 
   @override
   Widget build(BuildContext context) {
@@ -106,6 +108,26 @@ class ProfileScreen extends StatelessWidget {
             const Divider(height: 22, color: Colors.white12),
             _accountRow(Icons.info_outline, 'Версия приложения', 'NEXSUS 0.1.0'),
           ])),
+          const SizedBox(height: 14),
+          OutlinedButton.icon(
+            onPressed: () async {
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: const Text('Выйти из аккаунта?'),
+                  content: const Text('Для следующего входа потребуется снова ввести почту и пароль.'),
+                  actions: [
+                    TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Отмена')),
+                    FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Выйти')),
+                  ],
+                ),
+              );
+              if (confirmed == true) await onSignOut();
+            },
+            icon: const Icon(Icons.logout_rounded),
+            label: const Text('Выйти из аккаунта'),
+            style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFFFF858D), side: const BorderSide(color: Color(0x66FF858D)), padding: const EdgeInsets.symmetric(vertical: 14)),
+          ),
           const SizedBox(height: 14),
           Text('Настройки внешнего вида сохраняются на этом устройстве.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white.withValues(alpha: .48), fontSize: 11)),
         ],
