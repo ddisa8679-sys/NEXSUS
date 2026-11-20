@@ -49,7 +49,7 @@ class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
 
   void _pause() {
     final end = _endsAt;
-    if (end != null) _remaining = end.difference(DateTime.now()).inSeconds.clamp(0, _minutes * 60);
+    if (end != null) _remaining = end.difference(DateTime.now()).inSeconds.clamp(0, _minutes * 60).toInt();
     _timer?.cancel();
     _endsAt = null;
     setState(() => _running = false);
@@ -63,7 +63,7 @@ class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
     final p = await SharedPreferences.getInstance();
     final n = (p.getInt(_key) ?? 0) + 1;
     await p.setInt(_key, n);
-    if (mounted) setState(() { _completed = n; _remaining = 0; _running = false; _finished = true; });
+    if (mounted) setState(() { _completed = n; _remaining = 0; _running = false; _finished = true; _endsAt = null; });
   }
   void _reset() {
     _timer?.cancel();
