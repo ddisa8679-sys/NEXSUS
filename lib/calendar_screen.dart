@@ -208,8 +208,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
           DropdownButtonFormField<String>(
             value: kind,
             decoration: InputDecoration(labelText: AppText.tx('Категория', 'Category')),
-            items: AppText.language == 'en' ? ['Birthday', 'Holiday', 'Anniversary', 'Work', 'Personal', 'Important date'] : ['День рождения', 'Праздник', 'Годовщина', 'Работа', 'Личное', 'Важная дата']
-                .map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
+            items: (AppText.language == 'en' ? ['Birthday', 'Holiday', 'Anniversary', 'Work', 'Personal', 'Important date'] : ['День рождения', 'Праздник', 'Годовщина', 'Работа', 'Личное', 'Важная дата'])
+                .map((v) => DropdownMenuItem<String>(value: v, child: Text(v))).toList(),
             onChanged: (v) { if (v != null) refresh(() => kind = v); },
           ),
           const SizedBox(height: 8),
