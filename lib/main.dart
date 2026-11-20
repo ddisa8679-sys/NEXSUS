@@ -149,11 +149,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return AppText.tx('Доброй ночи', 'Good night');
   }
 
-  String get _date => '${_weekday(_now.weekday)}, ${_now.day} ${_month(_now.month)} ${_now.year}';
-  String _weekday(int day) => [AppText.tx('Понедельник', 'Monday'),AppText.tx('Вторник', 'Tuesday'),AppText.tx('Среда', 'Wednesday'),AppText.tx('Четверг', 'Thursday'),AppText.tx('Пятница', 'Friday'),AppText.tx('Суббота', 'Saturday'),AppText.tx('Воскресенье', 'Sunday')][day - 1];
-  String _month(int month) => [AppText.tx('января', 'Jan'),AppText.tx('февраля', 'Feb'),AppText.tx('марта', 'Mar'),AppText.tx('апреля', 'Apr'),AppText.tx('мая', 'May'),AppText.tx('июня', 'Jun'),AppText.tx('июля', 'Jul'),AppText.tx('августа', 'Aug'),AppText.tx('сентября', 'Sep'),AppText.tx('октября', 'Oct'),AppText.tx('ноября', 'Nov'),AppText.tx('декабря', 'Dec')][month - 1];
-  String _two(int value) => value.toString().padLeft(2, '0');
-
   @override
   Widget build(BuildContext context) {
     final pages = [
@@ -302,56 +297,6 @@ class _HomeScreenState extends State<HomeScreen> {
   );
 }
 
-class _ClockPage extends StatelessWidget {
-  const _ClockPage({required this.now, required this.date});
-
-  final DateTime now;
-  final String date;
-
-  @override
-  Widget build(BuildContext context) {
-    final time = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-    final seconds = now.second.toString().padLeft(2, '0');
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.schedule_rounded, size: 34, color: Color(0xFFFFD27A)),
-            const SizedBox(height: 24),
-            Text(time, style: const TextStyle(fontSize: 76, fontWeight: FontWeight.w300, letterSpacing: 2, fontFeatures: [FontFeature.tabularFigures()])),
-            Text(seconds, style: const TextStyle(fontSize: 20, color: Color(0xFFFFD27A), letterSpacing: 3)),
-            const SizedBox(height: 16),
-            Text(date, textAlign: TextAlign.center, style: const TextStyle(fontSize: 15, color: Colors.white60)),
-            const SizedBox(height: 28),
-            const Text('ТВОЁ ВРЕМЯ. ТВОЙ РИТМ.', style: TextStyle(fontSize: 11, letterSpacing: 2, color: Colors.white38)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PlaceholderPage extends StatelessWidget {
-  const _PlaceholderPage({required this.icon, required this.title, required this.subtitle});
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  @override
-  Widget build(BuildContext context) => Center(child: Padding(
-    padding: const EdgeInsets.all(28),
-    child: Column(mainAxisSize: MainAxisSize.min, children: [
-      Icon(icon, size: 58, color: const Color(0xFFB99AFF)),
-      const SizedBox(height: 16),
-      Text(title, style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
-      const SizedBox(height: 8),
-      Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60)),
-    ]),
-  ));
-}
-
- 
 class _NexsusAvatar extends StatelessWidget {
   const _NexsusAvatar({this.size = 56});
   final double size;
