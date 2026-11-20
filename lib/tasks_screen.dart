@@ -46,7 +46,7 @@ class _TasksScreenState extends State<TasksScreen> {
     if (!_notificationsReady || task['done'] == true) return;
     final due = _dateOf(task);
     if (due == null) return;
-    final reminder = due.subtract(const Duration(days: 1));
+    final reminder = DateTime(due.year, due.month, due.day - 1, due.hour, due.minute);
     if (!reminder.isAfter(DateTime.now())) return;
     await _notifications.zonedSchedule(
       _notificationId(task['id'] as String), 'Завтра: ${task['title']}',
@@ -84,7 +84,7 @@ class _TasksScreenState extends State<TasksScreen> {
   bool _sameDay(DateTime? a, DateTime b) => a != null && a.year == b.year && a.month == b.month && a.day == b.day;
   bool _overdue(Map<String, dynamic> task) {
     final d = _dateOf(task), now = DateTime.now();
-    return task['done'] != true && d != null && DateTime(d.year, d.month, d.day).isBefore(DateTime(now.year, now.month, now.day));
+    return task['done'] != true && d != null && d.isBefore(now);
   }
 
   Future<void> _addTask() async {
