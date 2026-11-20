@@ -118,6 +118,27 @@ class ProfileScreen extends StatelessWidget {
             const Divider(height: 22, color: Colors.white12),
             _accountRow(Icons.info_outline, AppText.tx('Версия приложения', 'App version'), 'NEXSUS 0.1.0'),
           ])),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: user?.email == null ? null : () async {
+              try {
+                await FirebaseAuth.instance.sendPasswordResetEmail(email: user!.email!);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(AppText.tx('Ссылка для смены пароля отправлена на почту.', 'Password reset link sent to your email.')),
+                  ));
+                }
+              } catch (_) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(AppText.tx('Не удалось отправить письмо. Попробуй позже.', 'Could not send the email. Try again later.')),
+                  ));
+                }
+              }
+            },
+            icon: const Icon(Icons.lock_reset),
+            label: Text(AppText.tx('Сменить пароль', 'Reset password')),
+          ),
           const SizedBox(height: 14),
           OutlinedButton.icon(
             onPressed: () async {
