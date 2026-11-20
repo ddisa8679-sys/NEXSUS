@@ -120,8 +120,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String get _date => '${_weekday(_now.weekday)}, ${_now.day} ${_month(_now.month)} ${_now.year}';
-  String _weekday(int day) => const [AppText.tx('Понедельник', 'Monday'),AppText.tx('Вторник', 'Tuesday'),AppText.tx('Среда', 'Wednesday'),AppText.tx('Четверг', 'Thursday'),AppText.tx('Пятница', 'Friday'),AppText.tx('Суббота', 'Saturday'),AppText.tx('Воскресенье', 'Sunday')][day - 1];
-  String _month(int month) => const [AppText.tx('января', 'Jan'),AppText.tx('февраля', 'Feb'),AppText.tx('марта', 'Mar'),AppText.tx('апреля', 'Apr'),AppText.tx('мая', 'May'),AppText.tx('июня', 'Jun'),AppText.tx('июля', 'Jul'),AppText.tx('августа', 'Aug'),AppText.tx('сентября', 'Sep'),AppText.tx('октября', 'Oct'),AppText.tx('ноября', 'Nov'),AppText.tx('декабря', 'Dec')][month - 1];
+  String _weekday(int day) => [AppText.tx('Понедельник', 'Monday'),AppText.tx('Вторник', 'Tuesday'),AppText.tx('Среда', 'Wednesday'),AppText.tx('Четверг', 'Thursday'),AppText.tx('Пятница', 'Friday'),AppText.tx('Суббота', 'Saturday'),AppText.tx('Воскресенье', 'Sunday')][day - 1];
+  String _month(int month) => [AppText.tx('января', 'Jan'),AppText.tx('февраля', 'Feb'),AppText.tx('марта', 'Mar'),AppText.tx('апреля', 'Apr'),AppText.tx('мая', 'May'),AppText.tx('июня', 'Jun'),AppText.tx('июля', 'Jul'),AppText.tx('августа', 'Aug'),AppText.tx('сентября', 'Sep'),AppText.tx('октября', 'Oct'),AppText.tx('ноября', 'Nov'),AppText.tx('декабря', 'Dec')][month - 1];
   String _two(int value) => value.toString().padLeft(2, '0');
 
   @override
