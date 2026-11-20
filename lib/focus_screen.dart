@@ -78,9 +78,9 @@ class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) => ListView(padding: const EdgeInsets.fromLTRB(22, 26, 22, 32), children: [
     Text(AppText.tx('NEXSUS / РЕЖИМ ФОКУСА', 'NEXSUS / FOCUS MODE'), style: TextStyle(color: Color(0xFFFFD27A), fontSize: 11, letterSpacing: 2, fontWeight: FontWeight.bold)),
     const SizedBox(height: 10),
-    const Text(AppText.tx('Время для главного', 'Time for what matters'), style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
+    Text(AppText.tx('Время для главного', 'Time for what matters'), style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
     const SizedBox(height: 8),
-    const Text(AppText.tx('Убери лишнее. Выбери одну задачу. Остальное подождёт.', 'Clear the noise. Choose one task. The rest can wait.'), style: TextStyle(color: Colors.white60)),
+    Text(AppText.tx('Убери лишнее. Выбери одну задачу. Остальное подождёт.', 'Clear the noise. Choose one task. The rest can wait.'), style: TextStyle(color: Colors.white60)),
     const SizedBox(height: 30),
     Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(28),
@@ -110,12 +110,12 @@ class _FocusScreenState extends State<FocusScreen> with WidgetsBindingObserver {
       const Icon(Icons.local_fire_department_outlined, color: Color(0xFFFFD27A), size: 30),
       const SizedBox(width: 13),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text(AppText.tx('Завершённые сессии', 'Completed sessions'), style: TextStyle(color: Colors.white60, fontSize: 12)),
+        Text(AppText.tx('Завершённые сессии', 'Completed sessions'), style: TextStyle(color: Colors.white60, fontSize: 12)),
         const SizedBox(height: 4), Text('$_completed', style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
       ])),
-      const Text(AppText.tx('Каждая минута —\nшаг вперёд', 'Every minute is\na step forward'), textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 11)),
+      Text(AppText.tx('Каждая минута —\nшаг вперёд', 'Every minute is\na step forward'), textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 11)),
     ])),
     const SizedBox(height: 15),
-    const Text(AppText.tx('Совет: выбери одну задачу и не переключайся между приложениями до конца сессии.', 'Tip: choose one task and avoid switching apps until the session ends.'), textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 12, height: 1.5)),
+    Text(AppText.tx('Совет: выбери одну задачу и не переключайся между приложениями до конца сессии.', 'Tip: choose one task and avoid switching apps until the session ends.'), textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 12, height: 1.5)),
   ]);
 }
