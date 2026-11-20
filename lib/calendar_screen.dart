@@ -43,7 +43,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       _notificationsReady = granted ?? true;
       if (_notificationsReady) {
         _exactAlarmsAllowed = await androidPlugin?.requestExactAlarmsPermission() ?? false;
-        await androidPlugin?.createNotificationChannel(const AndroidNotificationChannel(
+        await androidPlugin?.createNotificationChannel(AndroidNotificationChannel(
           _channelId, AppText.tx('Напоминания календаря', 'Calendar reminders'),
           description: AppText.tx('Напоминания за день и в день важного события', 'Reminders one day before and on important dates'),
           importance: Importance.max,
@@ -115,7 +115,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (beforeIsLateToday) beforeTime = now.add(const Duration(minutes: 1));
     if (eventIsLateToday) eventTime = now.add(const Duration(minutes: 1));
 
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: AndroidNotificationDetails(
         _channelId, AppText.tx('Напоминания календаря', 'Calendar reminders'),
         channelDescription: AppText.tx('За день и в день важного события', 'One day before and on the event day'),
@@ -326,7 +326,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           Row(children: [Expanded(child: Text(AppText.tx('БЛИЖАЙШИЕ СОБЫТИЯ', 'UPCOMING EVENTS'), style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2))), Text('${upcoming.length}', style: const TextStyle(color: Color(0xFFFFD27A)))]),
           const SizedBox(height: 10),
           if (upcoming.isEmpty)
-            const Padding(padding: EdgeInsets.symmetric(vertical: 28), child: Column(children: [
+            Padding(padding: const EdgeInsets.symmetric(vertical: 28), child: Column(children: [
               Icon(Icons.event_available, size: 46, color: Color(0xFFB99AFF)),
               SizedBox(height: 10),
               Text(AppText.tx('Пока нет важных дат', 'No important dates yet'), style: TextStyle(fontWeight: FontWeight.bold)),
@@ -359,7 +359,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               );
             }),
           const SizedBox(height: 8),
-          const Text(AppText.tx('Напоминания планируются на устройстве. Для своевременной доставки не отключай уведомления NEXSUS и разрешение точных будильников в Android.', 'Reminders are scheduled on this device. Keep NEXSUS notifications and exact alarm permission enabled for timely delivery.'), style: TextStyle(fontSize: 10, color: Colors.white38, height: 1.4)),
+          Text(AppText.tx('Напоминания планируются на устройстве. Для своевременной доставки не отключай уведомления NEXSUS и разрешение точных будильников в Android.', 'Reminders are scheduled on this device. Keep NEXSUS notifications and exact alarm permission enabled for timely delivery.'), style: TextStyle(fontSize: 10, color: Colors.white38, height: 1.4)),
         ],
       )),
     );
