@@ -457,7 +457,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
                 decoration: BoxDecoration(
                   color: isUser ? const Color(0xFF49318A) : const Color(0xFF171832),
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFF7650D8).withValues(alpha: .28)),
+                  border: Border.all(color: const Color(0xFFB7A2F6).withValues(alpha: .28)),
                 ),
                 child: Text(message['content'] ?? '', style: const TextStyle(fontSize: 14, height: 1.4)),
               ),
@@ -476,7 +476,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
           IconButton(
             onPressed: _modelReady ? _toggleListening : null,
             iconSize: 27,
-            color: _listening ? Colors.redAccent : const Color(0xFFB99AFF),
+            color: _listening ? Colors.redAccent : const Color(0xFFB7A2F6),
             icon: Icon(_listening ? Icons.stop_circle : Icons.mic),
             tooltip: _listening ? AppText.tx('Остановить запись', 'Stop recording') : AppText.tx('Говорить', 'Speak'),
           ),
