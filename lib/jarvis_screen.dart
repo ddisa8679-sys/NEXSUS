@@ -391,7 +391,7 @@ class _JarvisScreenState extends State<JarvisScreen> {
             width: 44, height: 44,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              gradient: LinearGradient(colors: [Color(0xFF8C4DFF), Color(0xFF236BFF)]),
+              color: const Color(0xFF292B31),
             ),
             child: const Icon(Icons.graphic_eq, color: Colors.white),
           ),
