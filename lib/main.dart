@@ -67,14 +67,21 @@ class _NexsusAppState extends State<NexsusApp> {
         ),
         child: child ?? const SizedBox.shrink(),
       ),
-      home: AuthScreen(
-        firebaseReady: widget.firebaseReady,
-        onAuthenticated: (context, nickname) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => HomeScreen(nickname: nickname, settings: _settings, firebaseReady: widget.firebaseReady)),
-          );
-        },
-      ),
+      home: widget.firebaseReady && FirebaseAuth.instance.currentUser != null
+          ? HomeScreen(
+              nickname: FirebaseAuth.instance.currentUser!.displayName ??
+                  (FirebaseAuth.instance.currentUser!.email?.split('@').first ?? 'NEXSUS'),
+              settings: _settings,
+              firebaseReady: widget.firebaseReady,
+            )
+          : AuthScreen(
+              firebaseReady: widget.firebaseReady,
+              onAuthenticated: (context, nickname) {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => HomeScreen(nickname: nickname, settings: _settings, firebaseReady: widget.firebaseReady)),
+                );
+              },
+            ),
     ),
   );
 }
