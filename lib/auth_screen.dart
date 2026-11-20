@@ -74,10 +74,7 @@ class _AuthScreenState extends State<AuthScreen> {
         if (mounted && credential.user != null) _openUser(credential.user!);
       } else {
         final credential = await _auth.signIn(email: _email.text, password: _password.text);
-        final nickname = credential.user?.displayName?.trim().isNotEmpty == true
-            ? credential.user!.displayName!.trim()
-            : (_email.text.trim().split('@').first);
-        if (mounted) { _navigated = true; widget.onAuthenticated(context, nickname); }
+        if (mounted && credential.user != null) _openUser(credential.user!);
       }
     } on FirebaseAuthException catch (e) {
       _message(_authError(e.code));
